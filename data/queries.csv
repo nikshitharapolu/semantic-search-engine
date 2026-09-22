@@ -1,0 +1,6 @@
+query_id,query
+Q1,bm25 ranking for search engines
+Q2,semantic search using sentence transformers
+Q3,hybrid retrieval combining lexical and dense ranking
+Q4,precision recall map mrr evaluation
+Q5,streamlit interface for search app

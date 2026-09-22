@@ -1,0 +1,13 @@
+doc_id,title,category,text
+D1,Introduction to Information Retrieval,IR,"Information retrieval studies how to index, search, and rank documents for user queries. Core topics include term weighting, inverted indexes, BM25, evaluation metrics, and relevance feedback."
+D2,BM25 Ranking Explained,IR,"BM25 is a bag-of-words ranking function used by search engines to score documents against a query. It balances term frequency, inverse document frequency, and document length normalization."
+D3,Semantic Search with Transformers,NLP,"Semantic search uses dense embeddings from transformer models to capture meaning beyond exact keyword overlap. Sentence Transformers are widely used for query and document representation."
+D4,Cosine Similarity for Vector Search,NLP,"Vector retrieval often compares embeddings using cosine similarity. High cosine similarity indicates strong semantic alignment between a query vector and a document vector."
+D5,Hybrid Retrieval Systems,IR,"Hybrid retrieval combines lexical ranking such as BM25 with dense semantic retrieval. The goal is to improve search relevance by capturing both exact term matches and semantic meaning."
+D6,Precision and Recall in Evaluation,ML,"Precision measures how many retrieved documents are relevant, while recall measures how many relevant documents were found. These metrics are standard in information retrieval evaluation."
+D7,Mean Average Precision and MRR,ML,"MAP summarizes ranking quality across queries using average precision. Mean reciprocal rank focuses on the position of the first relevant result."
+D8,Streamlit for Search Applications,Apps,"Streamlit helps developers deploy interactive machine learning and search demos quickly. It supports widgets, tables, filters, and real-time query interfaces."
+D9,Sentence Embeddings in Practice,NLP,"Sentence embeddings map text into dense vectors that preserve semantic similarity. They are useful for retrieval, clustering, recommendation, and duplicate detection."
+D10,Inverted Index Fundamentals,IR,"An inverted index maps terms to the documents that contain them. This data structure enables efficient keyword search at scale."
+D11,Relevance Feedback Methods,IR,"Relevance feedback improves retrieval by refining a query using judged relevant documents. Classic approaches include pseudo relevance feedback and relevance models."
+D12,Deploying ML Apps,Apps,"Machine learning applications can be deployed using frameworks such as Streamlit, FastAPI, or Flask. Deployment considerations include latency, usability, and reproducibility."

@@ -1,0 +1,15 @@
+query_id,doc_id,relevance
+Q1,D2,1
+Q1,D10,1
+Q1,D1,1
+Q2,D3,1
+Q2,D9,1
+Q2,D4,1
+Q3,D5,1
+Q3,D2,1
+Q3,D3,1
+Q4,D6,1
+Q4,D7,1
+Q4,D1,1
+Q5,D8,1
+Q5,D12,1
