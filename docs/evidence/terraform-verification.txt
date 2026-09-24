@@ -1,0 +1,19 @@
+Terraform Infrastructure Verification
+Generated: Tue Sep 22 19:24:57 EDT 2026
+
+Terraform Version
+Terraform v1.16.3
+on darwin_arm64
++ provider registry.terraform.io/hashicorp/aws v6.66.0
+
+Terraform Outputs
+document_access_policy_arn = "arn:aws:iam::123456789012:policy/RagDocumentAccessTerraform"
+document_bucket = "rag-documents-iac"
+
+Terraform State
+data.aws_iam_policy_document.document_access
+aws_iam_policy.document_access
+aws_s3_bucket.documents
+aws_s3_bucket_public_access_block.documents
+aws_s3_bucket_server_side_encryption_configuration.documents
+aws_s3_bucket_versioning.documents

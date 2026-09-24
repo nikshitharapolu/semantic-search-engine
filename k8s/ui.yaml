@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-ui
+  namespace: rag-platform
+  labels:
+    app.kubernetes.io/name: rag-ui
+    app.kubernetes.io/part-of: hybrid-search-rag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rag-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rag-ui
+        app.kubernetes.io/part-of: hybrid-search-rag
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ui
+          image: semantic-search-rag:local
+          imagePullPolicy: Never
+          command: ["streamlit"]
+          args:
+            - run
+            - src/app.py
+            - --server.address=0.0.0.0
+            - --server.port=8501
+            - --server.fileWatcherType=none
+          envFrom:
+            - configMapRef:
+                name: rag-config
+          ports:
+            - name: http
+              containerPort: 8501
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: state
+              mountPath: /app/state
+            - name: temp
+              mountPath: /tmp
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: rag-state
+        - name: temp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-ui
+  namespace: rag-platform
+spec:
+  selector:
+    app.kubernetes.io/name: rag-ui
+  ports:
+    - name: http
+      port: 8501
+      targetPort: http

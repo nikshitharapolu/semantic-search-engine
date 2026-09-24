@@ -1,0 +1,12 @@
+.git
+.gitignore
+.DS_Store
+__pycache__
+*.py[cod]
+.pytest_cache
+.venv
+venv
+.env
+data/index
+data/uploaded_corpus.csv
+tests
