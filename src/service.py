@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from generation import ExtractiveFallbackGenerator, OllamaGenerator, ResilientLocalGenerator
+from guided_rag import GuidedRAGPipeline
 from ingestion import UploadedCorpusStore
 from object_storage import LocalObjectStore, ObjectStore, S3ObjectStore
 from rag import LocalRAGPipeline
@@ -38,6 +39,16 @@ def get_rag_pipeline() -> LocalRAGPipeline:
     return LocalRAGPipeline(get_engine(), generator)
 
 
+@lru_cache(maxsize=1)
+def get_guided_rag_pipeline() -> GuidedRAGPipeline:
+    local_model = OllamaGenerator()
+    generator = ResilientLocalGenerator(
+        primary=local_model,
+        fallback=ExtractiveFallbackGenerator(),
+    )
+    return GuidedRAGPipeline(get_engine(), generator, rewriter=local_model)
+
+
 def get_uploaded_corpus_store() -> UploadedCorpusStore:
     return UploadedCorpusStore(STATE_DATA_DIR / "uploaded_corpus.csv")
 
@@ -68,4 +79,5 @@ def refresh_indexes() -> None:
     """Force the next request to load uploaded chunks and rebuild stale embeddings."""
 
     get_rag_pipeline.cache_clear()
+    get_guided_rag_pipeline.cache_clear()
     get_engine.cache_clear()

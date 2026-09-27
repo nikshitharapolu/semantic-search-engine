@@ -1,21 +1,15 @@
 from __future__ import annotations
 import hashlib
 import json
-import re
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from text_utils import preprocess
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-
-
-def preprocess(text: str) -> list[str]:
-    text = str(text).lower()
-    text = re.sub(r"[^a-z0-9\s]", " ", text)
-    return text.split()
 
 
 class HybridSearchEngine:

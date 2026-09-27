@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import json
 import os
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Protocol
+
+import httpx
+from langchain_ollama import ChatOllama
+from ollama import ResponseError
 
 
 class TextGenerator(Protocol):
@@ -21,40 +23,41 @@ class OllamaUnavailableError(RuntimeError):
 
 @dataclass
 class OllamaGenerator:
-    """Generate an answer with a model running locally through Ollama."""
+    """Use LangChain's chat-model interface with the existing local Ollama model."""
 
     model: str = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
     base_url: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     timeout_seconds: int = 120
 
-    def generate(self, prompt: str) -> str:
-        payload = json.dumps(
-            {
-                "model": self.model,
-                "messages": [{"role": "user", "content": prompt}],
-                "stream": False,
-                "options": {"temperature": 0.1},
-            }
-        ).encode("utf-8")
-        request = urllib.request.Request(
-            f"{self.base_url.rstrip('/')}/api/chat",
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
+    @cached_property
+    def client(self) -> ChatOllama:
+        return ChatOllama(
+            model=self.model,
+            base_url=self.base_url,
+            temperature=0.1,
+            client_kwargs={"timeout": self.timeout_seconds, "trust_env": False},
         )
 
+    def generate(self, prompt: str) -> str:
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
-                body = json.loads(response.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            content = self.client.invoke(prompt).content
+        except (httpx.HTTPError, ResponseError, OSError) as exc:
             raise OllamaUnavailableError(
                 "Ollama is unavailable. Start it with `ollama serve` and pull the configured model."
             ) from exc
 
-        try:
-            return str(body["message"]["content"]).strip()
-        except (KeyError, TypeError) as exc:
-            raise OllamaUnavailableError("Ollama returned an unexpected response.") from exc
+        if isinstance(content, str):
+            answer = content.strip()
+        elif isinstance(content, list):
+            answer = "".join(
+                block.get("text", "") for block in content
+                if isinstance(block, dict) and block.get("type") == "text"
+            ).strip()
+        else:
+            answer = ""
+        if not answer:
+            raise OllamaUnavailableError("Ollama returned an empty or unexpected response.")
+        return answer
 
 
 @dataclass
@@ -80,8 +83,11 @@ class ResilientLocalGenerator:
     primary: TextGenerator
     fallback: TextGenerator
 
-    def generate(self, prompt: str) -> str:
+    def generate_with_mode(self, prompt: str) -> tuple[str, str]:
         try:
-            return self.primary.generate(prompt)
+            return self.primary.generate(prompt), "local model"
         except OllamaUnavailableError:
-            return self.fallback.generate(prompt)
+            return self.fallback.generate(prompt), "offline excerpt"
+
+    def generate(self, prompt: str) -> str:
+        return self.generate_with_mode(prompt)[0]

@@ -18,6 +18,8 @@ The provided Streamlit interface allows for live query testing, adjustable BM25 
 ## Features
 
 - **Citation-grounded RAG:** Answers questions from retrieved passages and attaches numbered sources.
+- **Guided RAG with LangGraph:** Screens questions, checks raw retrieval signals, rewrites weak queries once, and shows the route taken in the UI.
+- **LangChain model integration:** Both RAG paths invoke the same local Ollama model through `ChatOllama`.
 - **Fully local generation:** Uses Ollama by default, with no paid model API or cloud dependency.
 - **Resilient offline mode:** Falls back to extractive evidence when Ollama is unavailable.
 - **Prompt-injection-aware context:** Retrieved documents are explicitly treated as untrusted data.
@@ -78,6 +80,22 @@ flowchart TD
 
 Document embeddings are generated when the search engine is initialized. Streamlit caches the engine as a resource, avoiding repeated model and corpus initialization during interface reruns.
 
+### Guided RAG demo (LangGraph)
+
+Select **Guided RAG (LangGraph)** in the Streamlit sidebar. Ask **“How does hybrid retrieval combine lexical and semantic search?”** to see a cited answer and expand **“See how LangGraph reached this result”** for each step. Ask an unrelated question, such as **“Who won the 2024 championship?”**, to see a bounded retry and an explicit insufficient-evidence response. Upload a relevant document and ask again to see how a changed corpus affects the route.
+
+```mermaid
+flowchart TD
+    Q[Screen question] --> R[Hybrid retrieval]
+    R --> A{Useful retrieval signals?}
+    A -->|yes| G[Generate and check citations]
+    A -->|no, first try| W[Rewrite query]
+    W --> R
+    A -->|no, second try| N[Abstain]
+```
+
+This uses the existing BM25 + MiniLM search and the same local Ollama model through LangChain's `ChatOllama` interface on both answer paths. If the first search looks weak, Ollama attempts a short query rewrite; without Ollama, a keyword rewrite keeps the demo usable offline. The second search favors BM25 slightly. The trace shows the actual route, query, and attempt count. The check uses raw semantic similarity and word overlap rather than normalized hybrid score, which can be high for an unrelated top result. These signals are a heuristic: a cited answer is **not** proof that every claim is correct. The retry is capped at one to avoid loops. The original **Ask with RAG** mode and `/ask` endpoint remain available for comparison.
+
 ## Technology Stack
 
 | Component | Technology |
@@ -94,7 +112,8 @@ Document embeddings are generated when the search engine is initialized. Streaml
 | Orchestration | Kubernetes, Kustomize, and kind |
 | AWS development | S3, IAM, Moto Server, boto3, and Terraform |
 | Evaluation | Custom Python implementations of IR metrics |
-| Local generation | Ollama with configurable local model |
+| Local generation | LangChain `ChatOllama` with configurable local model |
+| Guided workflow | LangGraph StateGraph with conditional routing and one bounded retry |
 | RAG safety | Untrusted-context instructions and grounded citations |
 | Document extraction | pypdf and UTF-8 text extraction |
 | Vector persistence | NumPy embedding index with a fingerprinted manifest |
@@ -112,7 +131,8 @@ semantic-search-ir/
 ├── src/
 │   ├── api.py           # Validated FastAPI endpoints
 │   ├── app.py           # Streamlit application
-│   ├── generation.py    # Ollama adapter and offline fallback
+│   ├── generation.py    # LangChain/Ollama adapter and offline fallback
+│   ├── guided_rag.py    # LangGraph evidence check, rewrite, and answer routing
 │   ├── ingestion.py     # Safe extraction, chunking, and persistence
 │   ├── rag.py           # Retrieval-augmented generation pipeline
 │   ├── service.py       # Shared cached application services
@@ -121,6 +141,9 @@ semantic-search-ir/
 ├── tests/
 │   ├── test_ingestion.py # Extraction, chunking, and duplicate tests
 │   └── test_rag.py      # RAG grounding and fallback tests
+├── evaluation/
+│   ├── rag_comparison_cases.json # 18 labeled answerable/unanswerable questions
+│   └── compare_rag_paths.py     # Local comparison runner and detailed report
 ├── k8s/                  # Kubernetes workloads, services, PVC, and HPA
 ├── infra/
 │   ├── moto/             # Local least-privilege IAM policy
@@ -193,7 +216,7 @@ Streamlit will display a local address, typically `http://localhost:8501`.
 Use the sidebar to:
 
 - Upload and index a PDF, TXT, or Markdown file of up to 10 MB.
-- Choose between cited RAG answers and direct document search.
+- Choose guided LangGraph RAG, the original RAG path, or direct document search.
 - Change **BM25 weight (alpha)** from `0.0` to `1.0`.
 - Select how many results to return.
 - Compare the BM25, semantic, and hybrid scores for each result.
@@ -250,6 +273,7 @@ Open the interactive API documentation at `http://localhost:8000/docs`. Availabl
 | `GET /health` | Container and service health check |
 | `POST /search` | Hybrid BM25 and semantic retrieval |
 | `POST /ask` | Citation-grounded RAG answer |
+| `POST /ask/guided` | Guided RAG answer, outcome, sources, and step trace |
 | `POST /documents` | Upload and index PDF, TXT, or Markdown |
 
 Example request:
@@ -259,6 +283,26 @@ curl -X POST http://localhost:8000/ask \
   -H 'Content-Type: application/json' \
   -d '{"query":"How does hybrid retrieval work?","alpha":0.5,"top_k":5}'
 ```
+
+For the LangGraph path, use the same payload with `/ask/guided`. Its response adds `outcome` and `trace` fields, which make both successful and insufficient-evidence decisions inspectable.
+
+## Compare Original and Guided RAG
+
+Run both answer paths on 18 labeled questions from the bundled 12-document corpus. With the local Ollama model running, invoke:
+
+```bash
+python evaluation/compare_rag_paths.py
+```
+
+For a quick check (two answerable questions and one unanswerable question):
+
+```bash
+python evaluation/compare_rag_paths.py --limit 3
+```
+
+The comparison uses the same search index, local model, BM25 weight, and Top K for both paths. The guided path may perform one additional search and a model query rewrite. The default report is `reports/rag-path-comparison.json` and records each answer, retrieved/cited document IDs, guided trace, search attempts, and latency. Its summary includes answerable source hits, expected-source citations, explicit abstentions for unanswerable questions, valid citation markers, and median latency.
+
+These automatic metrics **do not establish factual correctness**. Read the saved answers and their source passages before claiming an improvement. The runner flags offline excerpts; when Ollama is unavailable, it can check control flow and retrieval, but its generation comparison is not representative. The tiny bundled corpus is an instructional test set, not a production benchmark. User-uploaded documents are excluded from this evaluation to make repeat runs comparable.
 
 ## Run with Docker and a Local AWS Emulator
 

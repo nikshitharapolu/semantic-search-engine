@@ -1,0 +1,20 @@
+[
+  {"id": "p01", "question": "What does information retrieval study?", "answerable": true, "expected_doc_ids": ["D1"]},
+  {"id": "p02", "question": "How does BM25 balance term frequency and document length?", "answerable": true, "expected_doc_ids": ["D2"]},
+  {"id": "u01", "question": "Who wrote the Introduction to Information Retrieval document in this corpus?", "answerable": false, "expected_doc_ids": []},
+  {"id": "p03", "question": "What can semantic search capture beyond exact keywords?", "answerable": true, "expected_doc_ids": ["D3"]},
+  {"id": "p04", "question": "How are vectors compared in cosine similarity search?", "answerable": true, "expected_doc_ids": ["D4"]},
+  {"id": "u02", "question": "Which paper first introduced BM25 and in what year?", "answerable": false, "expected_doc_ids": []},
+  {"id": "p05", "question": "How does hybrid retrieval combine lexical and dense search?", "answerable": true, "expected_doc_ids": ["D5"]},
+  {"id": "p06", "question": "What is the difference between precision and recall?", "answerable": true, "expected_doc_ids": ["D6"]},
+  {"id": "u03", "question": "What is the exact dimensionality of the corpus sentence embeddings?", "answerable": false, "expected_doc_ids": []},
+  {"id": "p07", "question": "What does mean reciprocal rank focus on?", "answerable": true, "expected_doc_ids": ["D7"]},
+  {"id": "p08", "question": "Why use Streamlit for a search demo?", "answerable": true, "expected_doc_ids": ["D8"]},
+  {"id": "u04", "question": "How much does Streamlit Cloud cost each month?", "answerable": false, "expected_doc_ids": []},
+  {"id": "p09", "question": "What are sentence embeddings useful for?", "answerable": true, "expected_doc_ids": ["D9"]},
+  {"id": "p10", "question": "What does an inverted index map?", "answerable": true, "expected_doc_ids": ["D10"]},
+  {"id": "u05", "question": "What was Apple's revenue in fiscal 2026?", "answerable": false, "expected_doc_ids": []},
+  {"id": "p11", "question": "How does relevance feedback improve retrieval?", "answerable": true, "expected_doc_ids": ["D11"]},
+  {"id": "p12", "question": "Which frameworks can deploy machine learning apps?", "answerable": true, "expected_doc_ids": ["D12"]},
+  {"id": "u06", "question": "Who won the 2024 Formula 1 world championship?", "answerable": false, "expected_doc_ids": []}
+]

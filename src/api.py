@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from ingestion import MAX_FILE_BYTES
 from object_storage import ObjectStorageError
-from service import get_engine, get_rag_pipeline, ingest_document
+from service import get_engine, get_guided_rag_pipeline, get_rag_pipeline, ingest_document
 
 
 app = FastAPI(
@@ -72,6 +72,18 @@ def ask(request: RetrievalRequest) -> dict[str, Any]:
         "query": request.query,
         "answer": response.answer,
         "sources": records_from_frame(response.sources),
+    }
+
+
+@app.post("/ask/guided")
+def ask_guided(request: RetrievalRequest) -> dict[str, Any]:
+    response = get_guided_rag_pipeline().answer(request.query, alpha=request.alpha, top_k=request.top_k)
+    return {
+        "query": request.query,
+        "answer": response.answer,
+        "sources": records_from_frame(response.sources),
+        "outcome": response.outcome,
+        "trace": response.trace,
     }
 
 
