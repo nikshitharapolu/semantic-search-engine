@@ -2,6 +2,8 @@
 
 The interactive information retrieval application uses **BM25 Lexical Search** along with **Transformer Semantic Search**. This information retrieval system performs retrieval based on evidence based on keywords and meaning, normalizes both scores, and fuses them to form a configurable hybrid ranker.
 
+**[Live demo](https://semantic-search-engine-nr.streamlit.app/)**
+
 ## Overview
 
 Keyword search works well if there is a match in the terminology used in the query and the document, but it might fail to find some documents that convey the same idea through different vocabulary. Semantic search takes care of meaning, though it does not consider any exact match.
