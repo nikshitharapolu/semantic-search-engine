@@ -16,3 +16,11 @@ data/databricks_query_embeddings.csv
 reports/*.json
 data/databricks_embeddings.csv
 **/reports/*.json
+
+# Downloaded benchmarks and generated embedding caches
+evaluation/datasets/
+reports/*.csv
+
+# Public reference run and per-query evidence
+!reports/scifact-benchmark.json
+!reports/scifact-benchmark-per-query.csv

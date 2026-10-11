@@ -4,6 +4,8 @@ The interactive information retrieval application uses **BM25 Lexical Search** a
 
 **[Live demo](https://semantic-search-engine-nr.streamlit.app/)**
 
+The public Streamlit Cloud demo returns retrieved evidence through offline fallback because Ollama is unavailable there. Run locally with Ollama for generated answers.
+
 ## Overview
 
 Keyword search works well if there is a match in the terminology used in the query and the document, but it might fail to find some documents that convey the same idea through different vocabulary. Semantic search takes care of meaning, though it does not consider any exact match.
@@ -252,6 +254,57 @@ To experiment with other settings, update the call at the bottom of `src/evaluat
 
 > The bundled dataset is intentionally small and is meant to demonstrate the complete retrieval and evaluation pipeline. Performance on it should not be interpreted as a benchmark for production-scale search.
 
+### BEIR SciFact benchmark
+
+Evaluated the existing BM25 + MiniLM ranker on [BEIR SciFact](https://github.com/beir-cellar/beir): **5,183 scientific abstracts**, **809 training queries**, and **300 held-out test queries**. Queries retrieve evidence relevant to scientific claims, including evidence that contradicts a claim.
+
+| Retrieval setup | BM25 weight (alpha) | Recall@10 | NDCG@10 |
+|---|---:|---:|---:|
+| BM25 | 1.0 | 0.7757 | 0.6523 |
+| Semantic (MiniLM) | 0.0 | 0.7833 | 0.6451 |
+| Hybrid (fixed) | 0.5 | 0.8242 | 0.7107 |
+| Hybrid (train-tuned) | 0.4 | **0.8366** | **0.7157** |
+
+The tuned hybrid improves Recall@10 by **6.09 percentage points** and NDCG@10 by **9.7% relative** to this project's BM25 baseline. Alpha was selected by training NDCG@10 from 0.1 through 0.9 in steps of 0.1; ties use training Recall@10, then proximity to 0.5. Test judgments were not used to select alpha. The application's default weight remains 0.5.
+
+Metrics are macro-averaged over test queries. NDCG uses linear relevance gain (SciFact labels are binary); unjudged documents count as non-relevant. The embedding model is `sentence-transformers/all-MiniLM-L6-v2`, with the engine's existing truncation behavior. This benchmark evaluates retrieval only, not answer correctness, generation latency, or abstention. These gains describe one dataset and implementation; statistical significance and broader generalization have not been established.
+
+#### Reproduce the benchmark
+
+With the project's virtual environment active and dependencies installed:
+
+```bash
+mkdir -p evaluation/datasets
+curl -L --fail \
+  https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/scifact.zip \
+  -o evaluation/datasets/scifact.zip
+unzip -q evaluation/datasets/scifact.zip -d evaluation/datasets
+python evaluation/benchmark_scifact.py --smoke
+python evaluation/benchmark_scifact.py
+```
+
+Ollama is not required. The first run embeds the entire corpus; later runs reuse the cached embeddings. Downloaded data and embedding caches are excluded from Git. Smoke checks use only ten queries per split and are not benchmark results.
+
+#### Saved per-query results
+
+The committed [reference JSON report](reports/scifact-benchmark.json) contains dataset fingerprints, training scores, aggregate test metrics, and a `per_query` list for each setup under `test_results`. The [per-query CSV](reports/scifact-benchmark-per-query.csv) contains **1,200 rows**, with query text, each setup's metrics, ranked document IDs, relevance labels, and missed relevant document IDs. These public SciFact reference files are explicitly allowed by `.gitignore`; other generated reports remain ignored.
+
+Future benchmark runs write both files automatically. To export an existing JSON report without rerunning retrieval:
+
+```bash
+python evaluation/export_scifact_results.py
+```
+
+Filter the CSV to `Hybrid (train-tuned)` and sort by NDCG@10 or Recall@10 to inspect failures. Compare the same query ID across setups. These test failures are useful for analysis, but further changes should be selected using training/development data; repeated optimization against this test set would compromise its held-out status.
+
+### Compare retrieval setups in guided RAG
+
+```bash
+python evaluation/compare_retrieval_setups.py
+```
+
+This separate runner compares BM25, semantic, and hybrid retrieval on the 18 bundled questions. Recall@10 and NDCG@10 use initial retrieval for answerable cases; explicit abstention is measured through the same guided RAG workflow with each setup's weight fixed during retries. It saves full answers to `reports/retrieval-setup-comparison.json`. Run with Ollama active; offline fallback aborts the comparison. Use `--update-readme` only after reviewing the saved answers. This small demo evaluation is separate from SciFact.
+
 ## Run the Tests
 
 The test suite uses Python's standard library and does not contact an external model API:
@@ -476,13 +529,11 @@ The title and text fields are concatenated before indexing and embedding.
 
 Possible next steps include:
 
-- Evaluate on a larger public retrieval dataset such as BEIR or ANTIQUE.
-- Add NDCG@K and graded-relevance evaluation.
-- Tune `alpha` using a validation query set rather than selecting it manually.
-- Persist document embeddings to avoid recomputation on application startup.
+- Evaluate on additional public retrieval datasets beyond SciFact.
+- Validate metric behavior on datasets with graded relevance judgments.
+- Compare training-selected fusion weights across datasets and test alternative fusion methods.
 - Use FAISS or another vector index for scalable nearest-neighbor retrieval.
 - Add query filters, highlighting, result explanations, and search-history analysis.
-- Deploy the Streamlit application for public access.
 
 ## Skills Demonstrated
 
