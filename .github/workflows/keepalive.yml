@@ -1,0 +1,31 @@
+name: keep-streamlit-awake
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip install playwright && playwright install --with-deps chromium
+      - name: Visit apps
+        run: |
+          python - <<'EOF'
+          from playwright.sync_api import sync_playwright
+          urls = [
+            "https://semantic-search-engine-nr.streamlit.app/",
+            "https://creditdelta-mcp-guardian.streamlit.app/",
+          ]
+          with sync_playwright() as p:
+              b = p.chromium.launch()
+              for u in urls:
+                  page = b.new_page()
+                  page.goto(u, wait_until="networkidle", timeout=90000)
+                  btn = page.get_by_role("button", name="Yes, get this app back up!")
+                  if btn.count():
+                      btn.click()
+                      page.wait_for_timeout(30000)
+                  page.close()
+              b.close()
+          EOF
