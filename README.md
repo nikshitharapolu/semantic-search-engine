@@ -545,9 +545,6 @@ Possible next steps include:
 - Interactive ML application development
 - Modular Python project design
 
-## License
-
-This project does not currently include a license. Add a `LICENSE` file before distributing or accepting external contributions.
 
 ## Author
 
