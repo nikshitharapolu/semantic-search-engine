@@ -1,0 +1,19 @@
+{
+  "comparison": "Hybrid (train-tuned) minus BM25",
+  "query_count": 300,
+  "resamples": 10000,
+  "seed": 42,
+  "method": "Paired bootstrap, 95% percentile intervals",
+  "metrics": {
+    "Recall@10": {
+      "mean_gain": 0.06088888888888889,
+      "lower": 0.031663888888888894,
+      "upper": 0.09111111111111111
+    },
+    "NDCG@10": {
+      "mean_gain": 0.06345566608811383,
+      "lower": 0.04113304637133044,
+      "upper": 0.08650869554408007
+    }
+  }
+}

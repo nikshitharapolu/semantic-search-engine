@@ -267,7 +267,17 @@ Evaluated the existing BM25 + MiniLM ranker on [BEIR SciFact](https://github.com
 
 The tuned hybrid improves Recall@10 by **6.09 percentage points** and NDCG@10 by **9.7% relative** to this project's BM25 baseline. Alpha was selected by training NDCG@10 from 0.1 through 0.9 in steps of 0.1; ties use training Recall@10, then proximity to 0.5. Test judgments were not used to select alpha. The application's default weight remains 0.5.
 
-Metrics are macro-averaged over test queries. NDCG uses linear relevance gain (SciFact labels are binary); unjudged documents count as non-relevant. The embedding model is `sentence-transformers/all-MiniLM-L6-v2`, with the engine's existing truncation behavior. This benchmark evaluates retrieval only, not answer correctness, generation latency, or abstention. These gains describe one dataset and implementation; statistical significance and broader generalization have not been established.
+Paired bootstrap analysis over the 300 test queries, using 10,000 resamples and random seed 42, estimated a Recall@10 improvement of 0.0609 over BM25 (95% percentile interval: 0.0317–0.0911) and an NDCG@10 improvement of 0.0635 (95% percentile interval: 0.0411–0.0865). Both intervals exclude zero; these findings apply to this SciFact evaluation.
+
+Metrics are macro-averaged over test queries. NDCG uses linear relevance gain (SciFact labels are binary); unjudged documents count as non-relevant. The embedding model is `sentence-transformers/all-MiniLM-L6-v2`, with the engine's existing truncation behavior. This benchmark evaluates retrieval only, not answer correctness, generation latency, or abstention. These gains describe one dataset and implementation; broader generalization beyond SciFact has not been established.
+
+Reproduce the bootstrap analysis from the saved benchmark report:
+
+```bash
+python evaluation/bootstrap_scifact.py
+```
+
+See the [bootstrap results](reports/scifact-bootstrap.json).
 
 #### Reproduce the benchmark
 

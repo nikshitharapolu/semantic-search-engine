@@ -21,6 +21,6 @@ data/databricks_embeddings.csv
 evaluation/datasets/
 reports/*.csv
 
-# Public reference run and per-query evidence
 !reports/scifact-benchmark.json
 !reports/scifact-benchmark-per-query.csv
+!reports/scifact-bootstrap.json
