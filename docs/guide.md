@@ -1,0 +1,564 @@
+# Semantic Search Engine with Hybrid Ranking
+
+The interactive information retrieval application uses **BM25 Lexical Search** along with **Transformer Semantic Search**. This information retrieval system performs retrieval based on evidence based on keywords and meaning, normalizes both scores, and fuses them to form a configurable hybrid ranker.
+
+**[Live demo](https://semantic-search-engine-nr.streamlit.app/)**
+
+The public Streamlit Cloud demo returns retrieved evidence through offline fallback because Ollama is unavailable there. Run locally with Ollama for generated answers.
+
+## Overview
+
+Keyword search works well if there is a match in the terminology used in the query and the document, but it might fail to find some documents that convey the same idea through different vocabulary. Semantic search takes care of meaning, though it does not consider any exact match.
+
+This project uses both these techniques:
+
+- **BM25**: Computes lexical relevance based on the frequency of query-term occurrence, inverse document frequency, and document-length normalization.
+- **Sentence Transformers**: Encodes the queries and documents into dense vectors representing semantic meaning.
+- **Cosine Similarity**: Computes the similarity of queries and documents embedding.
+- **Weighted Score Fusion**: Generates the final hybrid score and allows control over the lexical-semantic balancing.
+
+The provided Streamlit interface allows for live query testing, adjustable BM25 weights, flexible number of results to retrieve, individual component score inspection, and corpus exploration.
+
+## Features
+
+- **Citation-grounded RAG:** Answers questions from retrieved passages and attaches numbered sources.
+- **Guided RAG with LangGraph:** Screens questions, checks raw retrieval signals, rewrites weak queries once, and shows the route taken in the UI.
+- **LangChain model integration:** Both RAG paths invoke the same local Ollama model through `ChatOllama`.
+- **Fully local generation:** Uses Ollama by default, with no paid model API or cloud dependency.
+- **Resilient offline mode:** Falls back to extractive evidence when Ollama is unavailable.
+- **Prompt-injection-aware context:** Retrieved documents are explicitly treated as untrusted data.
+- **Document ingestion:** Upload PDF, TXT, and Markdown documents from the Streamlit sidebar.
+- **Overlapping chunking:** Splits longer documents into retrieval-sized passages while retaining boundary context.
+- **Persistent vector index:** Reuses locally cached embeddings until the corpus or embedding model changes.
+- **Safe local storage:** Enforces file types and size limits, sanitizes names, and detects duplicate uploads.
+- **FastAPI service:** Exposes validated health, search, RAG, and document-ingestion endpoints.
+- **Dockerized services:** Runs the API and Streamlit UI as non-root containers with persistent data volumes.
+- **Kubernetes deployment:** Provides local `kind` manifests with storage, probes, limits, autoscaling, and restricted security contexts.
+- **AWS-compatible storage:** Persists original uploads in an encrypted, versioned S3 bucket through Moto.
+- **Infrastructure as code:** Provisions S3 security controls and a least-privilege IAM policy with Terraform.
+
+- BM25-based keyword retrieval with `rank-bm25`
+- Semantic retrieval using `sentence-transformers/all-MiniLM-L6-v2`
+- Normalized fusion of lexical and semantic scores
+- Adjustable BM25 weight through the Streamlit sidebar
+- Configurable Top-K retrieval
+- Per-result BM25, semantic, and hybrid score display
+- Offline evaluation using Precision@K, Recall@K, MAP, and MRR
+- Small sample corpus, query set, and relevance judgments for demonstration
+
+## How Hybrid Ranking Works
+
+For a query $q$ and document $d$, the application calculates a BM25 score and a cosine-similarity score. Because these values have different ranges, each score set is independently scaled to $[0,1]$ using min–max normalization.
+
+The final score is:
+
+$$
+\text{HybridScore}(q,d)=\alpha\,\text{BM25}_{norm}(q,d)+(1-\alpha)\,\text{Semantic}_{norm}(q,d)
+$$
+
+where:
+
+- $\alpha=1$ uses only BM25.
+- $\alpha=0$ uses only semantic similarity.
+- $\alpha=0.5$ gives both methods equal weight.
+
+Documents are sorted by this hybrid score and the highest-ranked `Top K` results are returned.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[User query] --> B[Text preprocessing]
+    B --> C[BM25 scoring]
+    A --> D[Sentence Transformer encoding]
+    D --> E[Cosine similarity]
+    C --> F[Min-max normalization]
+    E --> F
+    F --> G[Weighted score fusion]
+    G --> H[Ranked Top-K results]
+    H --> I[Numbered context passages]
+    I --> J[Local Ollama model]
+    J --> K[Cited answer]
+    H --> L[Search results]
+```
+
+Document embeddings are generated when the search engine is initialized. Streamlit caches the engine as a resource, avoiding repeated model and corpus initialization during interface reruns.
+
+### Guided RAG demo (LangGraph)
+
+Select **Guided RAG (LangGraph)** in the Streamlit sidebar. Ask **“How does hybrid retrieval combine lexical and semantic search?”** to see a cited answer and expand **“See how LangGraph reached this result”** for each step. Ask an unrelated question, such as **“Who won the 2024 championship?”**, to see a bounded retry and an explicit insufficient-evidence response. Upload a relevant document and ask again to see how a changed corpus affects the route.
+
+```mermaid
+flowchart TD
+    Q[Screen question] --> R[Hybrid retrieval]
+    R --> A{Useful retrieval signals?}
+    A -->|yes| G[Generate and check citations]
+    A -->|no, first try| W[Rewrite query]
+    W --> R
+    A -->|no, second try| N[Abstain]
+```
+
+This uses the existing BM25 + MiniLM search and the same local Ollama model through LangChain's `ChatOllama` interface on both answer paths. If the first search looks weak, Ollama attempts a short query rewrite; without Ollama, a keyword rewrite keeps the demo usable offline. The second search favors BM25 slightly. The trace shows the actual route, query, and attempt count. The check uses raw semantic similarity and word overlap rather than normalized hybrid score, which can be high for an unrelated top result. These signals are a heuristic: a cited answer is **not** proof that every claim is correct. The retry is capped at one to avoid loops. The original **Ask with RAG** mode and `/ask` endpoint remain available for comparison.
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Programming language | Python |
+| Lexical retrieval | BM25Okapi (`rank-bm25`) |
+| Semantic retrieval | Sentence Transformers |
+| Embedding model | `sentence-transformers/all-MiniLM-L6-v2` |
+| Similarity function | Cosine similarity |
+| Data processing | pandas, NumPy |
+| Interface | Streamlit |
+| Service API | FastAPI and Pydantic |
+| Containerization | Docker and Docker Compose |
+| Orchestration | Kubernetes, Kustomize, and kind |
+| AWS development | S3, IAM, Moto Server, boto3, and Terraform |
+| Evaluation | Custom Python implementations of IR metrics |
+| Local generation | LangChain `ChatOllama` with configurable local model |
+| Guided workflow | LangGraph StateGraph with conditional routing and one bounded retry |
+| RAG safety | Untrusted-context instructions and grounded citations |
+| Document extraction | pypdf and UTF-8 text extraction |
+| Vector persistence | NumPy embedding index with a fingerprinted manifest |
+
+## Project Structure
+
+```text
+semantic-search-ir/
+├── data/
+│   ├── corpus.csv       # Documents and metadata
+│   ├── queries.csv      # Evaluation queries
+│   ├── qrels.csv        # Query-document relevance judgments
+│   ├── uploaded_corpus.csv # Generated local upload metadata (gitignored)
+│   └── index/            # Generated persistent embeddings (gitignored)
+├── src/
+│   ├── api.py           # Validated FastAPI endpoints
+│   ├── app.py           # Streamlit application
+│   ├── generation.py    # LangChain/Ollama adapter and offline fallback
+│   ├── guided_rag.py    # LangGraph evidence check, rewrite, and answer routing
+│   ├── ingestion.py     # Safe extraction, chunking, and persistence
+│   ├── rag.py           # Retrieval-augmented generation pipeline
+│   ├── service.py       # Shared cached application services
+│   ├── evaluate.py      # Evaluation metrics and runner
+│   └── utils.py         # Preprocessing and hybrid search engine
+├── tests/
+│   ├── test_ingestion.py # Extraction, chunking, and duplicate tests
+│   └── test_rag.py      # RAG grounding and fallback tests
+├── evaluation/
+│   ├── rag_comparison_cases.json # 18 labeled answerable/unanswerable questions
+│   └── compare_rag_paths.py     # Local comparison runner and detailed report
+├── k8s/                  # Kubernetes workloads, services, PVC, and HPA
+├── infra/
+│   ├── moto/             # Local least-privilege IAM policy
+│   └── terraform/        # Versioned S3 and least-privilege IAM resources
+├── scripts/
+│   └── deploy-kind.sh    # Repeatable local cluster deployment
+├── requirements.txt
+├── Dockerfile
+├── compose.yaml
+└── README.md
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10 or later
+- Internet access during the first run to download the Sentence Transformer model
+
+### Installation
+
+1. Clone the repository and enter the project directory:
+
+   ```bash
+   git clone <your-repository-url>
+   cd semantic-search-ir
+   ```
+
+2. Create and activate a virtual environment:
+
+   **macOS/Linux**
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+   **Windows PowerShell**
+
+   ```powershell
+   py -m venv .venv
+   .venv\Scripts\Activate.ps1
+   ```
+
+3. Install the dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Run the Search Application
+
+For local answer generation, install Ollama and download the default model once:
+
+```bash
+ollama pull llama3.2:3b
+ollama serve
+```
+
+The application still runs if Ollama is not available; it returns the strongest retrieved evidence instead.
+
+From the project root, run:
+
+```bash
+streamlit run src/app.py
+```
+
+Streamlit will display a local address, typically `http://localhost:8501`.
+
+Use the sidebar to:
+
+- Upload and index a PDF, TXT, or Markdown file of up to 10 MB.
+- Choose guided LangGraph RAG, the original RAG path, or direct document search.
+- Change **BM25 weight (alpha)** from `0.0` to `1.0`.
+- Select how many results to return.
+- Compare the BM25, semantic, and hybrid scores for each result.
+
+Example query:
+
+```text
+hybrid retrieval combining lexical and dense ranking
+```
+
+Uploaded documents are stored locally in `data/uploaded_corpus.csv`. Their embeddings are cached under
+`data/index/`. Both locations are ignored by Git so personal documents and generated vectors are not committed.
+Uploading the same file again does not create duplicate chunks.
+
+## Run the Evaluation
+
+The repository includes sample queries and binary relevance judgments. Run the evaluator from the project root:
+
+```bash
+python src/evaluate.py
+```
+
+The current script evaluates the system at `Top K = 5` with `alpha = 0.5` and reports:
+
+- **Precision@K:** proportion of the first K retrieved documents that are relevant
+- **Recall@K:** proportion of all relevant documents retrieved in the first K results
+- **MAP:** mean of average precision across evaluation queries
+- **MRR:** mean reciprocal rank of the first relevant result
+
+To experiment with other settings, update the call at the bottom of `src/evaluate.py` or invoke the `evaluate(alpha=..., top_k=...)` function from Python.
+
+> The bundled dataset is intentionally small and is meant to demonstrate the complete retrieval and evaluation pipeline. Performance on it should not be interpreted as a benchmark for production-scale search.
+
+### BEIR SciFact benchmark
+
+Evaluated the existing BM25 + MiniLM ranker on [BEIR SciFact](https://github.com/beir-cellar/beir): **5,183 scientific abstracts**, **809 training queries**, and **300 held-out test queries**. Queries retrieve evidence relevant to scientific claims, including evidence that contradicts a claim.
+
+| Retrieval setup | BM25 weight (alpha) | Recall@10 | NDCG@10 |
+|---|---:|---:|---:|
+| BM25 | 1.0 | 0.7757 | 0.6523 |
+| Semantic (MiniLM) | 0.0 | 0.7833 | 0.6451 |
+| Hybrid (fixed) | 0.5 | 0.8242 | 0.7107 |
+| Hybrid (train-tuned) | 0.4 | **0.8366** | **0.7157** |
+
+The tuned hybrid improves Recall@10 by **6.09 percentage points** and NDCG@10 by **9.7% relative** to this project's BM25 baseline. Alpha was selected by training NDCG@10 from 0.1 through 0.9 in steps of 0.1; ties use training Recall@10, then proximity to 0.5. Test judgments were not used to select alpha. The application's default weight remains 0.5.
+
+Paired bootstrap analysis over the 300 test queries, using 10,000 resamples and random seed 42, estimated a Recall@10 improvement of 0.0609 over BM25 (95% percentile interval: 0.0317–0.0911) and an NDCG@10 improvement of 0.0635 (95% percentile interval: 0.0411–0.0865). Both intervals exclude zero; these findings apply to this SciFact evaluation.
+
+Metrics are macro-averaged over test queries. NDCG uses linear relevance gain (SciFact labels are binary); unjudged documents count as non-relevant. The embedding model is `sentence-transformers/all-MiniLM-L6-v2`, with the engine's existing truncation behavior. This benchmark evaluates retrieval only, not answer correctness, generation latency, or abstention. These gains describe one dataset and implementation; broader generalization beyond SciFact has not been established.
+
+Reproduce the bootstrap analysis from the saved benchmark report:
+
+```bash
+python evaluation/bootstrap_scifact.py
+```
+
+See the [bootstrap results](reports/scifact-bootstrap.json).
+
+#### Reproduce the benchmark
+
+With the project's virtual environment active and dependencies installed:
+
+```bash
+mkdir -p evaluation/datasets
+curl -L --fail \
+  https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/scifact.zip \
+  -o evaluation/datasets/scifact.zip
+unzip -q evaluation/datasets/scifact.zip -d evaluation/datasets
+python evaluation/benchmark_scifact.py --smoke
+python evaluation/benchmark_scifact.py
+```
+
+Ollama is not required. The first run embeds the entire corpus; later runs reuse the cached embeddings. Downloaded data and embedding caches are excluded from Git. Smoke checks use only ten queries per split and are not benchmark results.
+
+#### Saved per-query results
+
+The committed [reference JSON report](reports/scifact-benchmark.json) contains dataset fingerprints, training scores, aggregate test metrics, and a `per_query` list for each setup under `test_results`. The [per-query CSV](reports/scifact-benchmark-per-query.csv) contains **1,200 rows**, with query text, each setup's metrics, ranked document IDs, relevance labels, and missed relevant document IDs. These public SciFact reference files are explicitly allowed by `.gitignore`; other generated reports remain ignored.
+
+Future benchmark runs write both files automatically. To export an existing JSON report without rerunning retrieval:
+
+```bash
+python evaluation/export_scifact_results.py
+```
+
+Filter the CSV to `Hybrid (train-tuned)` and sort by NDCG@10 or Recall@10 to inspect failures. Compare the same query ID across setups. These test failures are useful for analysis, but further changes should be selected using training/development data; repeated optimization against this test set would compromise its held-out status.
+
+### Compare retrieval setups in guided RAG
+
+```bash
+python evaluation/compare_retrieval_setups.py
+```
+
+This separate runner compares BM25, semantic, and hybrid retrieval on the 18 bundled questions. Recall@10 and NDCG@10 use initial retrieval for answerable cases; explicit abstention is measured through the same guided RAG workflow with each setup's weight fixed during retries. It saves full answers to `reports/retrieval-setup-comparison.json`. Run with Ollama active; offline fallback aborts the comparison. Use `--update-readme` only after reviewing the saved answers. This small demo evaluation is separate from SciFact.
+
+## Run the Tests
+
+The test suite uses Python's standard library and does not contact an external model API:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Run the API
+
+Start Ollama separately, then launch the API from the project root:
+
+```bash
+uvicorn api:app --app-dir src --reload --port 8000
+```
+
+Open the interactive API documentation at `http://localhost:8000/docs`. Available endpoints are:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Container and service health check |
+| `POST /search` | Hybrid BM25 and semantic retrieval |
+| `POST /ask` | Citation-grounded RAG answer |
+| `POST /ask/guided` | Guided RAG answer, outcome, sources, and step trace |
+| `POST /documents` | Upload and index PDF, TXT, or Markdown |
+
+Example request:
+
+```bash
+curl -X POST http://localhost:8000/ask \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"How does hybrid retrieval work?","alpha":0.5,"top_k":5}'
+```
+
+For the LangGraph path, use the same payload with `/ask/guided`. Its response adds `outcome` and `trace` fields, which make both successful and insufficient-evidence decisions inspectable.
+
+## Compare Original and Guided RAG
+
+Run both answer paths on 18 labeled questions from the bundled 12-document corpus. With the local Ollama model running, invoke:
+
+```bash
+python evaluation/compare_rag_paths.py
+```
+
+For a quick check (two answerable questions and one unanswerable question):
+
+```bash
+python evaluation/compare_rag_paths.py --limit 3
+```
+
+The comparison uses the same search index, local model, BM25 weight, and Top K for both paths. The guided path may perform one additional search and a model query rewrite. The default report is `reports/rag-path-comparison.json` and records each answer, retrieved/cited document IDs, guided trace, search attempts, and latency. Its summary includes answerable source hits, expected-source citations, explicit abstentions for unanswerable questions, valid citation markers, and median latency.
+
+These automatic metrics **do not establish factual correctness**. Read the saved answers and their source passages before claiming an improvement. The runner flags offline excerpts; when Ollama is unavailable, it can check control flow and retrieval, but its generation comparison is not representative. The tiny bundled corpus is an instructional test set, not a production benchmark. User-uploaded documents are excluded from this evaluation to make repeat runs comparable.
+
+## Run with Docker and a Local AWS Emulator
+
+Keep Ollama running on the Mac, then build and start the UI, API, and Moto AWS emulator services:
+
+```bash
+docker compose up --build
+```
+
+- Streamlit UI: `http://localhost:8501`
+- FastAPI documentation: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
+- Local AWS endpoint: `http://localhost:4566`
+
+The containers connect to the host Ollama server through `host.docker.internal`. The local `data` directory is
+mounted into both services, so uploaded documents and the vector index survive container restarts. Stop the
+services with:
+
+```bash
+docker compose down
+```
+
+The free MiniLM embedding model is downloaded once while the Docker image builds and then used in offline mode.
+The application containers remain non-root and do not need a writable Hugging Face cache or runtime model download.
+
+Moto creates an S3 bucket named `rag-documents`, enables versioning and AES-256 server-side encryption, and
+creates an IAM policy restricted to listing that bucket and reading/writing objects under `documents/*`. The app
+uses content-addressed keys such as `documents/<checksum>/<filename>`, making repeat uploads idempotent.
+
+After uploading a document, inspect the locally emulated AWS resources:
+
+```bash
+docker compose exec api python scripts/inspect_aws_mock.py
+```
+
+The `/documents` API response includes the S3 URI and SHA-256 checksum of the stored original.
+
+## Provision Local AWS Infrastructure with Terraform
+
+Terraform provisions a second demonstration bucket (`rag-documents-iac`) so its lifecycle remains separate from
+the bucket automatically initialized in Moto for the running application:
+
+```bash
+cd infra/terraform
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan
+terraform apply
+```
+
+Enter `yes` when prompted. These commands target only Moto at `localhost:4566`; they do not use a real AWS
+account. Inspect the result:
+
+```bash
+docker compose exec api python scripts/inspect_aws_mock.py
+```
+
+Return to `infra/terraform` and remove only the Terraform-managed local resources when finished:
+
+```bash
+terraform destroy
+```
+## Run the Sandboxed Black-Box Evaluation
+
+The evaluator interacts only with the application's public HTTP API. It tests:
+
+- Citation-grounded answers
+- Prompt-injection resistance
+- Request validation
+- Response latency
+- Read-only filesystem enforcement
+- External-network isolation
+
+The evaluator runs as an unprivileged user with a read-only root filesystem, no Linux capabilities, resource limits, and an internal-only Docker network.
+
+Keep the Compose application running. In another terminal, run:
+
+```bash
+mkdir -p reports
+
+docker compose --profile evaluation run --rm blackbox-eval \
+  | tee reports/blackbox-evaluation.json
+```
+
+## Deploy to Local Kubernetes
+
+This deployment uses `kind`, which runs Kubernetes nodes as local Docker containers and does not create a paid
+cloud cluster. Install the required command-line tools on macOS:
+
+```bash
+brew install kind kubectl
+```
+
+Keep Docker Desktop and the host Ollama server running. Stop the Compose deployment to release ports:
+
+```bash
+docker compose down
+```
+
+Deploy the application:
+
+```bash
+chmod +x scripts/deploy-kind.sh
+./scripts/deploy-kind.sh
+```
+
+After both deployments become ready, expose them in two separate terminals:
+
+```bash
+kubectl port-forward service/rag-ui 8501:8501 -n rag-platform
+```
+
+```bash
+kubectl port-forward service/rag-api 8000:8000 -n rag-platform
+```
+
+Inspect the Kubernetes resources with:
+
+```bash
+kubectl get pods,services,pvc,hpa -n rag-platform
+kubectl describe deployment rag-api -n rag-platform
+kubectl logs deployment/rag-api -n rag-platform
+```
+
+The manifests apply the Kubernetes Restricted Pod Security profile, run with UID/GID `10001`, disable service
+account token mounting, drop all Linux capabilities, prevent privilege escalation, use the runtime-default seccomp
+profile, and make the container root filesystem read-only. Only `/app/state` and `/tmp` are writable.
+
+The HPA configuration scales the API from one to three replicas when average CPU utilization exceeds 70%.
+A Metrics Server must be installed in the local cluster before live CPU-driven scaling occurs; the HPA manifest
+can still be inspected without it.
+
+Delete the free local cluster when finished:
+
+```bash
+kind delete cluster --name rag-local
+```
+
+## Data Format
+
+### `corpus.csv`
+
+| Column | Description |
+|---|---|
+| `doc_id` | Unique document identifier |
+| `title` | Document title |
+| `category` | Document category |
+| `text` | Searchable document content |
+
+The title and text fields are concatenated before indexing and embedding.
+
+### `queries.csv`
+
+| Column | Description |
+|---|---|
+| `query_id` | Unique query identifier |
+| `query` | Query text |
+
+### `qrels.csv`
+
+| Column | Description |
+|---|---|
+| `query_id` | Query identifier |
+| `doc_id` | Relevant document identifier |
+| `relevance` | Relevance label |
+
+## Extending the Project
+
+Possible next steps include:
+
+- Evaluate on additional public retrieval datasets beyond SciFact.
+- Validate metric behavior on datasets with graded relevance judgments.
+- Compare training-selected fusion weights across datasets and test alternative fusion methods.
+- Use FAISS or another vector index for scalable nearest-neighbor retrieval.
+- Add query filters, highlighting, result explanations, and search-history analysis.
+
+## Skills Demonstrated
+
+- Information retrieval and ranking
+- Lexical and dense retrieval
+- Transformer embeddings
+- Score normalization and rank fusion
+- Retrieval evaluation
+- Interactive ML application development
+- Modular Python project design
+
+
+## Author
+
+**Nikshitha Rapolu**
+
+- [LinkedIn](https://www.linkedin.com/in/nikshitha-rapolu-18960321a/)
+- [GitHub](https://github.com/nikshitharapolu)
