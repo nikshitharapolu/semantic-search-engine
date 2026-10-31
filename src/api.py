@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
+import logging
+import os
+import time
 from typing import Any
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Request
 from pydantic import BaseModel, Field
 
 from ingestion import MAX_FILE_BYTES
@@ -14,9 +18,35 @@ from service import get_engine, get_guided_rag_pipeline, get_rag_pipeline, inges
 
 app = FastAPI(
     title="Hybrid Search and RAG API",
-    description="Cost-free local API for hybrid retrieval and citation-grounded RAG.",
+    description="Hybrid retrieval and citation-grounded RAG API.",
     version="0.3.0",
 )
+
+
+request_log = logging.getLogger("hybrid_search.requests")
+if not request_log.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    request_log.addHandler(handler)
+request_log.setLevel(logging.INFO)
+request_log.propagate = False
+
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    started = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    finally:
+        route = request.scope.get("route")
+        request_log.info(json.dumps({
+            "event": "request", "method": request.method,
+            "route": getattr(route, "path", "unmatched"), "status": status,
+            "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+        }))
 
 
 class RetrievalRequest(BaseModel):
@@ -89,6 +119,8 @@ def ask_guided(request: RetrievalRequest) -> dict[str, Any]:
 
 @app.post("/documents", status_code=201)
 async def add_document(file: UploadFile = File(...)) -> dict[str, Any]:
+    if os.getenv("RAG_READ_ONLY") == "1":
+        raise HTTPException(status_code=403, detail="Document uploads are disabled for this demo replica.")
     content = await file.read(MAX_FILE_BYTES + 1)
     try:
         result, stored = ingest_document(file.filename or "uploaded-document", content)

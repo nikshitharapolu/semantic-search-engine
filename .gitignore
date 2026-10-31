@@ -24,3 +24,7 @@ reports/*.csv
 !reports/scifact-benchmark.json
 !reports/scifact-benchmark-per-query.csv
 !reports/scifact-bootstrap.json
+# AWS demo inputs and temporary snapshot
+*.tfvars
+*.tfvars.json
+.cloud-demo/

@@ -10,3 +10,12 @@ venv
 data/index
 data/uploaded_corpus.csv
 tests
+
+**/.terraform
+**/*.tfstate
+**/*.tfstate.*
+**/tfplan
+**/*.tfvars
+**/*.tfvars.json
+data/objects
+evaluation/datasets

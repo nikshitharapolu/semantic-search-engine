@@ -70,6 +70,15 @@ Open the API documentation at `http://localhost:8000/docs`.
 
 Endpoints include `/health`, `/search`, `/ask`, `/ask/guided`, and `/documents`.
 
+## AWS deployment demonstration
+
+The FastAPI backend has been deployed and verified on **AWS ECS Fargate** using
+Terraform, with an S3-backed index snapshot, CloudWatch request logs and alarms,
+and SNS email notifications. Compute is stopped after testing; this is an
+on-demand demonstration, separate from the Streamlit demo.
+
+[Deployment evidence](docs/evidence/aws-deployment.md) · [Runbook](infra/aws-demo/README.md)
+
 ## Evaluation
 
 Download and extract SciFact once:
