@@ -1,0 +1,4 @@
+[server]
+# Avoid scanning Transformers' lazy modules and importing unused model backends.
+# Community Cloud still redeploys when the connected GitHub branch changes.
+fileWatcherType = "none"

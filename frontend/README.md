@@ -75,3 +75,7 @@ extractive answers and in-memory/session-local request handling. It never calls
 Ollama, writes uploaded documents, starts AWS resources or enables LangSmith
 tracing. Resource limits and sleep behavior of the free hosting still apply.
 The prior Python-widget interface is retained at `src/legacy_app.py` for local use.
+
+The hosted configuration disables Streamlit file watching to avoid scanning
+Transformers lazy modules. Restart local Streamlit after Python edits; Community
+Cloud still redeploys on GitHub pushes.
