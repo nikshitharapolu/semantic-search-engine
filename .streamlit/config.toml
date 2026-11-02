@@ -5,8 +5,8 @@ fileWatcherType = "none"
 
 [theme]
 base = "dark"
-primaryColor = "#d0a16b"
-backgroundColor = "#1e2226"
-secondaryBackgroundColor = "#282c2e"
-textColor = "#e2e0da"
+primaryColor = "#86a1bd"
+backgroundColor = "#202328"
+secondaryBackgroundColor = "#262d35"
+textColor = "#dedfe3"
 font = "sans serif"
