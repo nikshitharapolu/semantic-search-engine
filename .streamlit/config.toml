@@ -2,3 +2,11 @@
 # Avoid scanning Transformers' lazy modules and importing unused model backends.
 # Community Cloud still redeploys when the connected GitHub branch changes.
 fileWatcherType = "none"
+
+[theme]
+base = "dark"
+primaryColor = "#d0a16b"
+backgroundColor = "#1e2226"
+secondaryBackgroundColor = "#282c2e"
+textColor = "#e2e0da"
+font = "sans serif"
