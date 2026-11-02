@@ -5,6 +5,8 @@ from typing import Protocol
 
 import pandas as pd
 
+from tracing import traceable, inputs_without_self, response_view
+
 from generation import TextGenerator
 
 
@@ -105,6 +107,7 @@ class LocalRAGPipeline:
             excerpt += "..."
 
         return f"{excerpt} [1]"
+    @traceable(name="original-rag", process_inputs=inputs_without_self, process_outputs=response_view)
     def answer(
         self,
         question: str,

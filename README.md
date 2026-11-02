@@ -79,6 +79,14 @@ on-demand demonstration, separate from the Streamlit demo.
 
 [Deployment evidence](docs/evidence/aws-deployment.md) · [Runbook](infra/aws-demo/README.md)
 
+## React + TypeScript interface
+
+An additional evidence explorer provides typed search requests, ranked passage
+cards, retrieval controls and a guided RAG workflow trace. It runs locally
+against the FastAPI backend alongside the existing Streamlit interface.
+
+See [frontend setup and checks](frontend/README.md).
+
 ## Evaluation
 
 Download and extract SciFact once:
@@ -107,6 +115,15 @@ Compare original and guided RAG on the separate 18-question demo set, with Ollam
 ```bash
 python evaluation/compare_rag_paths.py
 ```
+
+## Optional LangSmith tracing
+
+Opt-in traces cover the original and guided RAG paths and hybrid retrieval.
+A versioned 18-question dataset runner compares the paths using code-based
+citation, source-hit and abstention checks. Live tracing and both 18-question experiments were verified in LangSmith using
+extractive answers and code-based evaluators; model-generated answer evaluation remains separate.
+
+[LangSmith setup and evaluation](docs/langsmith.md)
 
 ## Tests
 

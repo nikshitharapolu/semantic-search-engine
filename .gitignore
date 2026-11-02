@@ -28,3 +28,8 @@ reports/*.csv
 *.tfvars
 *.tfvars.json
 .cloud-demo/
+
+# TypeScript frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

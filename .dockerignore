@@ -19,3 +19,6 @@ tests
 **/*.tfvars.json
 data/objects
 evaluation/datasets
+
+frontend/node_modules
+frontend/dist

@@ -8,6 +8,7 @@ from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from text_utils import preprocess
+from tracing import traceable, inputs_without_self, retrieval_view
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -89,6 +90,8 @@ class HybridSearchEngine:
             return np.ones_like(scores)
         return (scores - scores.min()) / (scores.max() - scores.min())
 
+    @traceable(name="hybrid-search", run_type="retriever",
+               process_inputs=inputs_without_self, process_outputs=retrieval_view)
     def search(self, query: str, alpha: float = 0.5, top_k: int = 5):
         query_tokens = preprocess(query)
         bm25_scores = np.array(self.bm25.get_scores(query_tokens), dtype=float)

@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Literal, TypedDict
 
 import pandas as pd
 from langgraph.graph import END, START, StateGraph
 
-from generation import OllamaUnavailableError, ResilientLocalGenerator, TextGenerator
+from tracing import traceable, inputs_without_self, response_view
+
+from generation import ExtractiveFallbackGenerator, OllamaUnavailableError, ResilientLocalGenerator, TextGenerator
 from rag import LocalRAGPipeline, SearchEngine
 from text_utils import preprocess
 
@@ -99,6 +102,31 @@ class GuidedRAGPipeline:
         attempt = state.get("attempts", 0) + 1
         alpha = max(state["alpha"], RETRY_BM25_WEIGHT) if attempt == 2 else state["alpha"]
         sources = self.rag.search_engine.search(state["query"], alpha=alpha, top_k=state["top_k"])
+        # A retry must not erase useful evidence from the first search.
+        if not sources.empty:
+            terms = set(preprocess(state["question"])) - QUESTION_WORDS
+            def overlap(row):
+                return len(terms & set(preprocess(str(row.get("text", "")))))
+            first = sources.iloc[0]
+            # Promote only when lexical support AND semantic alignment improve.
+            # This avoids trading one retrieval signal for the other.
+            stronger = [i for i in range(1, len(sources))
+                        if overlap(sources.iloc[i]) > overlap(first)
+                        and float(sources.iloc[i].get("semantic_score", 0)) >= float(first.get("semantic_score", 0))]
+            if stronger:
+                best = max(stronger, key=lambda i: (overlap(sources.iloc[i]), float(sources.iloc[i].get("semantic_score", 0))))
+                sources = sources.iloc[[best] + [i for i in range(len(sources)) if i != best]].reset_index(drop=True)
+        previous = state.get("sources")
+        if attempt > 1 and previous is not None and not previous.empty:
+            terms = set(preprocess(state["question"])) - QUESTION_WORDS
+            def coverage(frame):
+                if frame.empty:
+                    return -1
+                return max(len(terms & set(preprocess(str(row.get("text", "")))))
+                           for row in frame.to_dict(orient="records"))
+            if coverage(sources) < coverage(previous):
+                sources = previous
+
         return {
             "attempts": attempt,
             "sources": sources,
@@ -106,6 +134,27 @@ class GuidedRAGPipeline:
                 state, "retrieve", attempt=attempt, query=state["query"], source_count=len(sources)
             ),
         }
+
+    @staticmethod
+    def missing_requested_fact(question: str, sources: pd.DataFrame) -> str | None:
+        """Conservative answer-type checks; topic similarity alone is insufficient.
+
+        These checks establish missing evidence, not correctness of an answer.
+        They never use evaluation labels or document IDs.
+        """
+        text = " ".join(str(row.get("text", "")) for row in sources.to_dict(orient="records"))
+        q = question.lower()
+        if re.search(r"\b(year|date|when)\b", q) and not re.search(
+            r"\b(?:1[5-9]\d{2}|20\d{2})\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b", text, re.I
+        ):
+            return "requested date is absent"
+        if re.search(r"\b(how many|how much|dimensionality|dimension count|revenue|price|cost)\b", q) and not re.search(r"\b\d+(?:\.\d+)?\b", text):
+            return "requested quantity is absent"
+        if re.search(r"\bwho\b.*\b(wrote|authored|invented|created|introduced)\b|\b(author|authors)\b", q) and not re.search(
+            r"\b(author|authors|authored|written by|invented by|introduced by|created by)\b|\b[A-Z][a-z]+(?: [A-Z][a-z]+)+ (?:wrote|created|introduced|invented)\b", text
+        ):
+            return "requested attribution is absent"
+        return None
 
     def _assess(self, state: GuidedState) -> dict[str, Any]:
         sources = state["sources"]
@@ -120,13 +169,16 @@ class GuidedRAGPipeline:
 
         # The normalized hybrid score can be high even when every result is irrelevant.
         supported = not sources.empty and (
-            semantic >= 0.55 or (semantic >= 0.34 and overlap >= 2)
+            semantic >= 0.45 or (semantic >= 0.25 and overlap >= 2)
         )
+        missing_fact = self.missing_requested_fact(state["question"], sources)
+        supported = supported and missing_fact is None
         return {
             "supported": supported,
             "trace": self._record(
                 state, "assess", attempt=state["attempts"],
                 result="promising evidence" if supported else "weak evidence",
+                reason=missing_fact or ("relevance check passed" if supported else "insufficient relevance"),
             ),
         }
 
@@ -170,6 +222,8 @@ class GuidedRAGPipeline:
         prompt = self.rag.build_prompt(state["question"], sources)
         if isinstance(self.rag.generator, ResilientLocalGenerator):
             answer, mode = self.rag.generator.generate_with_mode(prompt)
+        elif isinstance(self.rag.generator, ExtractiveFallbackGenerator):
+            answer, mode = self.rag.generator.generate(prompt), "offline excerpt"
         else:
             answer, mode = self.rag.generator.generate(prompt), "generator"
         has_citation = self.rag.has_valid_citation(answer, len(sources))
@@ -190,6 +244,7 @@ class GuidedRAGPipeline:
             "trace": self._record(state, "abstain", result="no supported answer"),
         }
 
+    @traceable(name="guided-rag", process_inputs=inputs_without_self, process_outputs=response_view)
     def answer(self, question: str, alpha: float = 0.5, top_k: int = 5) -> GuidedRAGResponse:
         if not question or not question.strip():
             raise ValueError("Question cannot be empty.")
