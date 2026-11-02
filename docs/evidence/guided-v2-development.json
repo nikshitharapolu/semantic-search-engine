@@ -1,0 +1,1406 @@
+{
+  "generated_utc": "2026-10-31T17:52:02.411536+00:00",
+  "case_count": 18,
+  "answerable_count": 12,
+  "unanswerable_count": 6,
+  "alpha": 0.5,
+  "top_k": 5,
+  "summary": {
+    "original": {
+      "answerable_source_hit_rate": 1.0,
+      "answerable_expected_source_citation_rate": 1.0,
+      "answerable_abstention_rate": 0.0,
+      "unanswerable_explicit_abstention_rate": 0.0,
+      "answered_valid_citation_rate": 1.0,
+      "median_latency_ms": 5.0,
+      "mean_search_attempts": 1,
+      "offline_excerpt_count": 18
+    },
+    "guided": {
+      "answerable_source_hit_rate": 1.0,
+      "answerable_expected_source_citation_rate": 1.0,
+      "answerable_abstention_rate": 0.0,
+      "unanswerable_explicit_abstention_rate": 1.0,
+      "answered_valid_citation_rate": 1.0,
+      "median_latency_ms": 5.6,
+      "mean_search_attempts": 1.33,
+      "offline_excerpt_count": 12
+    }
+  },
+  "limitations": [
+    "Citation/source metrics are proxies; review each answer against the retrieved passage.",
+    "Only explicit app abstentions are counted; review model-written refusals manually.",
+    "The 12-document bundled corpus and hand-labeled questions are a small demo, not a benchmark.",
+    "Offline excerpts are flagged; rerun with Ollama active before comparing generation quality."
+  ],
+  "cases": [
+    {
+      "id": "p01",
+      "question": "What does information retrieval study?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D1"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Information retrieval studies how to index, search, and rank documents for user queries. Core topics include term weighting, inverted indexes, BM25, evaluation metrics, and relevance feedback. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D1",
+          "D6",
+          "D11",
+          "D2",
+          "D5"
+        ],
+        "cited_source_ids": [
+          "D1"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 97.0,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Information retrieval studies how to index, search, and rank documents for user queries. Core topics include term weighting, inverted indexes, BM25, evaluation metrics, and relevance feedback. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D1",
+          "D6",
+          "D11",
+          "D2",
+          "D5"
+        ],
+        "cited_source_ids": [
+          "D1"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 7.9,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What does information retrieval study?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p02",
+      "question": "How does BM25 balance term frequency and document length?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D2"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: BM25 is a bag-of-words ranking function used by search engines to score documents against a query. It balances term frequency, inverse document frequency, and document length normalization. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D2",
+          "D1",
+          "D5",
+          "D6",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D2"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 6.4,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: BM25 is a bag-of-words ranking function used by search engines to score documents against a query. It balances term frequency, inverse document frequency, and document length normalization. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D2",
+          "D1",
+          "D5",
+          "D6",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D2"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.6,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "How does BM25 balance term frequency and document length?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u01",
+      "question": "Who wrote the Introduction to Information Retrieval document in this corpus?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Information retrieval studies how to index, search, and rank documents for user queries. Core topics include term weighting, inverted indexes, BM25, evaluation metrics, and relevance feedback. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D1",
+          "D10",
+          "D6",
+          "D2",
+          "D5"
+        ],
+        "cited_source_ids": [
+          "D1"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.6,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 11.2,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "Who wrote the Introduction to Information Retrieval document in this corpus?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "requested attribution is absent"
+          },
+          {
+            "step": "rewrite",
+            "query": "wrote introduction information retrieval document this corpus",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "wrote introduction information retrieval document this corpus",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "requested attribution is absent"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p03",
+      "question": "What can semantic search capture beyond exact keywords?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D3"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Semantic search uses dense embeddings from transformer models to capture meaning beyond exact keyword overlap. Sentence Transformers are widely used for query and document representation. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D3",
+          "D5",
+          "D10",
+          "D4",
+          "D1"
+        ],
+        "cited_source_ids": [
+          "D3"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.6,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Semantic search uses dense embeddings from transformer models to capture meaning beyond exact keyword overlap. Sentence Transformers are widely used for query and document representation. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D3",
+          "D5",
+          "D10",
+          "D4",
+          "D1"
+        ],
+        "cited_source_ids": [
+          "D3"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.3,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What can semantic search capture beyond exact keywords?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p04",
+      "question": "How are vectors compared in cosine similarity search?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D4"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Vector retrieval often compares embeddings using cosine similarity. High cosine similarity indicates strong semantic alignment between a query vector and a document vector. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D4",
+          "D9",
+          "D6",
+          "D1",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D4"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.8,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Vector retrieval often compares embeddings using cosine similarity. High cosine similarity indicates strong semantic alignment between a query vector and a document vector. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D4",
+          "D9",
+          "D6",
+          "D1",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D4"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.5,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "How are vectors compared in cosine similarity search?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u02",
+      "question": "Which paper first introduced BM25 and in what year?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: BM25 is a bag-of-words ranking function used by search engines to score documents against a query. It balances term frequency, inverse document frequency, and document length normalization. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D2",
+          "D7",
+          "D5",
+          "D6",
+          "D1"
+        ],
+        "cited_source_ids": [
+          "D2"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.4,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 10.6,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "Which paper first introduced BM25 and in what year?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "requested date is absent"
+          },
+          {
+            "step": "rewrite",
+            "query": "paper first introduced bm25 year",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "paper first introduced bm25 year",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "requested date is absent"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p05",
+      "question": "How does hybrid retrieval combine lexical and dense search?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D5"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Hybrid retrieval combines lexical ranking such as BM25 with dense semantic retrieval. The goal is to improve search relevance by capturing both exact term matches and semantic meaning. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D5",
+          "D3",
+          "D1",
+          "D6",
+          "D4"
+        ],
+        "cited_source_ids": [
+          "D5"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.2,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Hybrid retrieval combines lexical ranking such as BM25 with dense semantic retrieval. The goal is to improve search relevance by capturing both exact term matches and semantic meaning. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D5",
+          "D3",
+          "D1",
+          "D6",
+          "D4"
+        ],
+        "cited_source_ids": [
+          "D5"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.4,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "How does hybrid retrieval combine lexical and dense search?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p06",
+      "question": "What is the difference between precision and recall?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D6"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Precision measures how many retrieved documents are relevant, while recall measures how many relevant documents were found. These metrics are standard in information retrieval evaluation. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D6",
+          "D7",
+          "D5",
+          "D4",
+          "D2"
+        ],
+        "cited_source_ids": [
+          "D6"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.5,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Precision measures how many retrieved documents are relevant, while recall measures how many relevant documents were found. These metrics are standard in information retrieval evaluation. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D6",
+          "D7",
+          "D5",
+          "D4",
+          "D2"
+        ],
+        "cited_source_ids": [
+          "D6"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.6,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What is the difference between precision and recall?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u03",
+      "question": "What is the exact dimensionality of the corpus sentence embeddings?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Sentence embeddings map text into dense vectors that preserve semantic similarity. They are useful for retrieval, clustering, recommendation, and duplicate detection. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D9",
+          "D3",
+          "D5",
+          "D7",
+          "D2"
+        ],
+        "cited_source_ids": [
+          "D9"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.9,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 11.5,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What is the exact dimensionality of the corpus sentence embeddings?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "rewrite",
+            "query": "exact dimensionality corpus sentence embeddings",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "exact dimensionality corpus sentence embeddings",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p07",
+      "question": "What does mean reciprocal rank focus on?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D7"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: MAP summarizes ranking quality across queries using average precision. Mean reciprocal rank focuses on the position of the first relevant result. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D7",
+          "D1",
+          "D2",
+          "D10",
+          "D11"
+        ],
+        "cited_source_ids": [
+          "D7"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.6,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: MAP summarizes ranking quality across queries using average precision. Mean reciprocal rank focuses on the position of the first relevant result. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D7",
+          "D1",
+          "D2",
+          "D10",
+          "D11"
+        ],
+        "cited_source_ids": [
+          "D7"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.0,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What does mean reciprocal rank focus on?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p08",
+      "question": "Why use Streamlit for a search demo?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D8"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Streamlit helps developers deploy interactive machine learning and search demos quickly. It supports widgets, tables, filters, and real-time query interfaces. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D8",
+          "D4",
+          "D12",
+          "D2",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D8"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.5,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Streamlit helps developers deploy interactive machine learning and search demos quickly. It supports widgets, tables, filters, and real-time query interfaces. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D8",
+          "D4",
+          "D12",
+          "D2",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D8"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.5,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "Why use Streamlit for a search demo?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u04",
+      "question": "How much does Streamlit Cloud cost each month?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Streamlit helps developers deploy interactive machine learning and search demos quickly. It supports widgets, tables, filters, and real-time query interfaces. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D8",
+          "D12",
+          "D6",
+          "D1",
+          "D3"
+        ],
+        "cited_source_ids": [
+          "D8"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.7,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 9.8,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "How much does Streamlit Cloud cost each month?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "rewrite",
+            "query": "much streamlit cloud cost each month",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "much streamlit cloud cost each month",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p09",
+      "question": "What are sentence embeddings useful for?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D9"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Sentence embeddings map text into dense vectors that preserve semantic similarity. They are useful for retrieval, clustering, recommendation, and duplicate detection. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D9",
+          "D3",
+          "D4",
+          "D6",
+          "D10"
+        ],
+        "cited_source_ids": [
+          "D9"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.3,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Sentence embeddings map text into dense vectors that preserve semantic similarity. They are useful for retrieval, clustering, recommendation, and duplicate detection. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D9",
+          "D3",
+          "D4",
+          "D6",
+          "D10"
+        ],
+        "cited_source_ids": [
+          "D9"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.7,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What are sentence embeddings useful for?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p10",
+      "question": "What does an inverted index map?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D10"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: An inverted index maps terms to the documents that contain them. This data structure enables efficient keyword search at scale. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D10",
+          "D1",
+          "D7",
+          "D2",
+          "D9"
+        ],
+        "cited_source_ids": [
+          "D10"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.9,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: An inverted index maps terms to the documents that contain them. This data structure enables efficient keyword search at scale. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D10",
+          "D1",
+          "D7",
+          "D2",
+          "D9"
+        ],
+        "cited_source_ids": [
+          "D10"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.2,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What does an inverted index map?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u05",
+      "question": "What was Apple's revenue in fiscal 2026?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Precision measures how many retrieved documents are relevant, while recall measures how many relevant documents were found. These metrics are standard in information retrieval evaluation. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D6",
+          "D9",
+          "D2",
+          "D1",
+          "D12"
+        ],
+        "cited_source_ids": [
+          "D6"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.2,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 9.9,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "What was Apple's revenue in fiscal 2026?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "rewrite",
+            "query": "was apple s revenue fiscal 2026",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "was apple s revenue fiscal 2026",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "requested quantity is absent"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p11",
+      "question": "How does relevance feedback improve retrieval?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D11"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Relevance feedback improves retrieval by refining a query using judged relevant documents. Classic approaches include pseudo relevance feedback and relevance models. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D11",
+          "D1",
+          "D5",
+          "D6",
+          "D4"
+        ],
+        "cited_source_ids": [
+          "D11"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.7,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Relevance feedback improves retrieval by refining a query using judged relevant documents. Classic approaches include pseudo relevance feedback and relevance models. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D11",
+          "D1",
+          "D5",
+          "D6",
+          "D4"
+        ],
+        "cited_source_ids": [
+          "D11"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.3,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "How does relevance feedback improve retrieval?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p12",
+      "question": "Which frameworks can deploy machine learning apps?",
+      "answerable": true,
+      "expected_doc_ids": [
+        "D12"
+      ],
+      "original": {
+        "answer": "The strongest retrieved evidence says: Machine learning applications can be deployed using frameworks such as Streamlit, FastAPI, or Flask. Deployment considerations include latency, usability, and reproducibility. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D12",
+          "D8",
+          "D1",
+          "D2",
+          "D6"
+        ],
+        "cited_source_ids": [
+          "D12"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.1,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The strongest retrieved evidence says: Machine learning applications can be deployed using frameworks such as Streamlit, FastAPI, or Flask. Deployment considerations include latency, usability, and reproducibility. [1]",
+        "outcome": "cited excerpt",
+        "source_ids": [
+          "D12",
+          "D8",
+          "D1",
+          "D2",
+          "D6"
+        ],
+        "cited_source_ids": [
+          "D12"
+        ],
+        "valid_citations": true,
+        "source_hit": true,
+        "expected_source_cited": true,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 5.5,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "Which frameworks can deploy machine learning apps?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "promising evidence",
+            "reason": "relevance check passed"
+          },
+          {
+            "step": "generate",
+            "result": "cited excerpt",
+            "mode": "offline excerpt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "u06",
+      "question": "Who won the 2024 Formula 1 world championship?",
+      "answerable": false,
+      "expected_doc_ids": [],
+      "original": {
+        "answer": "The strongest retrieved evidence says: MAP summarizes ranking quality across queries using average precision. Mean reciprocal rank focuses on the position of the first relevant result. [1]",
+        "outcome": "original RAG",
+        "source_ids": [
+          "D7",
+          "D5",
+          "D10",
+          "D2",
+          "D11"
+        ],
+        "cited_source_ids": [
+          "D7"
+        ],
+        "valid_citations": true,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": false,
+        "offline_excerpt": true,
+        "search_attempts": 1,
+        "latency_ms": 4.5,
+        "trace": []
+      },
+      "guided": {
+        "answer": "The indexed documents do not contain enough evidence to answer this question.",
+        "outcome": "insufficient evidence",
+        "source_ids": [],
+        "cited_source_ids": [],
+        "valid_citations": false,
+        "source_hit": null,
+        "expected_source_cited": null,
+        "abstained": true,
+        "offline_excerpt": false,
+        "search_attempts": 2,
+        "latency_ms": 9.9,
+        "trace": [
+          {
+            "step": "screen",
+            "result": "accepted"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 1,
+            "query": "Who won the 2024 Formula 1 world championship?",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 1,
+            "result": "weak evidence",
+            "reason": "insufficient relevance"
+          },
+          {
+            "step": "rewrite",
+            "query": "won 2024 formula 1 world championship",
+            "method": "keywords"
+          },
+          {
+            "step": "retrieve",
+            "attempt": 2,
+            "query": "won 2024 formula 1 world championship",
+            "source_count": 5
+          },
+          {
+            "step": "assess",
+            "attempt": 2,
+            "result": "weak evidence",
+            "reason": "insufficient relevance"
+          },
+          {
+            "step": "abstain",
+            "result": "no supported answer"
+          }
+        ]
+      }
+    }
+  ]
+}

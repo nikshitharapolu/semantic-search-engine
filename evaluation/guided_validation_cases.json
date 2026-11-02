@@ -1,0 +1,14 @@
+[
+{"id":"v01","question":"What two retrieval signals are combined in hybrid systems?","answerable":true,"expected_doc_ids":["D5"]},
+{"id":"v02","question":"Which document structure links a word to matching records?","answerable":true,"expected_doc_ids":["D10"]},
+{"id":"v03","question":"How can judged relevant documents refine future searches?","answerable":true,"expected_doc_ids":["D11"]},
+{"id":"v04","question":"What metric emphasizes where the earliest relevant result occurs?","answerable":true,"expected_doc_ids":["D7"]},
+{"id":"v05","question":"What does precision measure about search results?","answerable":true,"expected_doc_ids":["D6"]},
+{"id":"v06","question":"What can embeddings support besides searching?","answerable":true,"expected_doc_ids":["D9"]},
+{"id":"v07","question":"In which year was FastAPI first released?","answerable":false,"expected_doc_ids":[]},
+{"id":"v08","question":"How many parameters does the sentence transformer have?","answerable":false,"expected_doc_ids":[]},
+{"id":"v09","question":"Who authored the document about relevance feedback?","answerable":false,"expected_doc_ids":[]},
+{"id":"v10","question":"How much does a Flask deployment cost monthly?","answerable":false,"expected_doc_ids":[]},
+{"id":"v11","question":"What date was the inverted index document published?","answerable":false,"expected_doc_ids":[]},
+{"id":"v12","question":"How many documents can a Streamlit application index?","answerable":false,"expected_doc_ids":[]}
+]
