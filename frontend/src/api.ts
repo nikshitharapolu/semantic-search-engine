@@ -35,6 +35,10 @@ function documents(value: unknown): Document[] {
   })
 }
 async function request(path: string, init: RequestInit): Promise<unknown> {
+  if (import.meta.env.MODE === 'streamlit') {
+    const { streamlitRequest } = await import('./streamlit')
+    return streamlitRequest(path, init)
+  }
   let response: Response
   try { response = await fetch(`/api${path}`, init) }
   catch (error) {

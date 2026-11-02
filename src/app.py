@@ -1,115 +1,37 @@
-from __future__ import annotations
+"""Public React + TypeScript interface hosted by Streamlit Community Cloud."""
+from pathlib import Path
 import os
 import sys
+
+# Public queries use the bundled corpus and never enable external tracing.
+os.environ['LANGSMITH_TRACING'] = 'false'
+os.environ['LANGCHAIN_TRACING_V2'] = 'false'
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import streamlit as st
+import streamlit.components.v1 as components
+from public_search import handle_request
 
-CURRENT_DIR = os.path.dirname(__file__)
-if CURRENT_DIR not in sys.path:
-    sys.path.append(CURRENT_DIR)
-
-from object_storage import ObjectStorageError
-from service import get_engine, get_guided_rag_pipeline, get_rag_pipeline, ingest_document
-
-st.set_page_config(page_title="Hybrid Semantic Search Engine", page_icon="🔎", layout="wide")
-
-@st.cache_resource
-def load_engine():
-    return get_engine()
-
-engine = load_engine()
+st.set_page_config(page_title='Hybrid Search — Evidence Explorer', page_icon='🔎', layout='wide')
+st.markdown('''<style>
+.block-container {padding: 0 1rem; max-width: 1500px;}
+[data-testid="stHeader"] {background: transparent;}
+</style>''', unsafe_allow_html=True)
+assets = Path(__file__).resolve().parents[1] / 'frontend' / 'streamlit_build'
+if not (assets / 'index.html').is_file():
+    st.error('Frontend build missing. Run npm --prefix frontend run build:streamlit, then restart the app.')
+    st.stop()
 
 @st.cache_resource
-def load_rag_pipeline():
-    return get_rag_pipeline()
+def public_engine():
+    from public_search import create_engine
+    return create_engine()
 
-rag_pipeline = load_rag_pipeline()
-
-@st.cache_resource
-def load_guided_rag_pipeline():
-    return get_guided_rag_pipeline()
-
-guided_rag_pipeline = load_guided_rag_pipeline()
-
-st.title("🔎 Semantic Search Engine with Hybrid Ranking")
-st.markdown(
-    "Search documents using BM25, semantic embeddings, and a weighted hybrid score."
-)
-
-with st.sidebar:
-    st.header("Search controls")
-    experience = st.radio("Experience", ["Guided RAG (LangGraph)", "Ask with RAG", "Search documents"])
-    alpha = st.slider("BM25 weight (alpha)", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
-    top_k = st.slider("Top K results", min_value=3, max_value=10, value=5, step=1)
-    st.caption("Hybrid score = alpha × BM25 + (1-alpha) × semantic score")
-
-    st.divider()
-    st.header("Add documents")
-    uploaded_file = st.file_uploader("Upload PDF, TXT, or Markdown", type=["pdf", "txt", "md"])
-    if uploaded_file is not None and st.button("Index document", width="stretch"):
-        try:
-            ingestion, stored = ingest_document(uploaded_file.name, uploaded_file.getvalue())
-            if ingestion.duplicate:
-                st.info(f"{ingestion.filename} is already indexed.")
-            else:
-                st.session_state["ingestion_message"] = (
-                    f"Stored and indexed {ingestion.filename} as {ingestion.chunks_added} searchable chunks."
-                )
-                st.cache_resource.clear()
-                st.rerun()
-        except (ValueError, ObjectStorageError) as error:
-            st.error(str(error))
-
-    if message := st.session_state.pop("ingestion_message", None):
-        st.success(message)
-    uploaded_count = int((engine.df["category"] == "uploaded").sum())
-    st.caption(f"{len(engine.df)} total chunks indexed · {uploaded_count} uploaded chunks")
-
-query = st.text_input(
-    "Ask a question" if experience != "Search documents" else "Enter your search query",
-    value="How does hybrid retrieval combine lexical and semantic search?",
-)
-
-if query:
-    if experience != "Search documents":
-        is_guided = experience == "Guided RAG (LangGraph)"
-        pipeline = guided_rag_pipeline if is_guided else rag_pipeline
-        response = pipeline.answer(question=query, alpha=alpha, top_k=top_k)
-        results = response.sources
-        st.subheader("Grounded answer")
-        st.info(response.answer)
-        st.caption(
-            "Answers use the local Ollama model through LangChain when available. "
-            "If Ollama is offline, the app returns the strongest retrieved evidence."
-        )
-        if is_guided:
-            with st.expander("See how LangGraph reached this result", expanded=True):
-                st.write(f"Outcome: {response.outcome}")
-                for index, event in enumerate(response.trace, start=1):
-                    details = ", ".join(f"{key}: {value}" for key, value in event.items() if key != "step")
-                    st.write(f"{index}. **{event['step'].title()}** — {details}")
-    else:
-        results = engine.search(query=query, alpha=alpha, top_k=top_k)
-
-    st.subheader("Sources" if experience != "Search documents" else "Top results")
-    for i, row in results.iterrows():
-        with st.container(border=True):
-            st.markdown(f"### {i+1}. {row['title']}")
-            st.write(row["text"])
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Doc ID", row["doc_id"])
-            c2.metric("BM25", f"{row['bm25_score']:.4f}")
-            c3.metric("Semantic", f"{row['semantic_score']:.4f}")
-            c4.metric("Hybrid", f"{row['hybrid_score']:.4f}")
-            st.caption(f"Category: {row['category']}")
-
-    if not results.empty:
-        st.subheader("Results table")
-        st.dataframe(
-            results[["doc_id", "title", "category", "bm25_score", "semantic_score", "hybrid_score"]],
-            width="stretch",
-            hide_index=True,
-        )
-
-st.divider()
-st.subheader("Corpus preview")
-st.dataframe(engine.df[["doc_id", "title", "category"]], width="stretch", hide_index=True)
+component = components.declare_component('hybrid_search_explorer', path=str(assets))
+request = component(response=st.session_state.get('search_response'), default=None, key='evidence_explorer')
+if isinstance(request, dict) and request.get('id') != st.session_state.get('last_search_id'):
+    # The previous request is marked before execution to prevent duplicate work
+    # during reruns. Component errors are returned to its own UI.
+    st.session_state['last_search_id'] = request.get('id')
+    st.session_state['search_response'] = handle_request(request, public_engine)
+    st.rerun()

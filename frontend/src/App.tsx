@@ -5,6 +5,7 @@ import type { Document, Mode, SearchResult } from './api'
 
 type View = { status: 'idle' } | { status: 'loading' } | { status: 'error'; message: string } |
   { status: 'success'; result: SearchResult; mode: Mode; elapsed: number }
+const embedded = import.meta.env.MODE === 'streamlit'
 const suggestions = ['How does hybrid retrieval work?', 'What is the difference between precision and recall?', 'Who wrote the BM25 paper?']
 function DocumentCard({ doc, index }: { doc: Document; index: number }) {
   const [expanded, setExpanded] = useState(false)
@@ -50,7 +51,7 @@ export default function App() {
   const result = view.status === 'success' ? view.result : undefined
   const excerpt = result?.outcome === 'cited excerpt' || result?.trace.some(event => event.mode === 'offline excerpt')
   return <div className="app">
-    <header className="header"><a className="brand" href="#"><span className="brand-mark" aria-hidden="true">h<span>↗</span></span><span>hybrid<span className="brand-light"> / search</span></span></a><div className={`connection ${connection}`}><i aria-hidden="true" />{connection === 'connected' ? 'API connected' : connection === 'checking' ? 'Checking API' : 'API offline'}</div></header>
+    <header className="header"><a className="brand" href="#"><span className="brand-mark" aria-hidden="true">h<span>↗</span></span><span>hybrid<span className="brand-light"> / search</span></span></a><div className={`connection ${connection}`}><i aria-hidden="true" />{connection === 'connected' ? (embedded ? 'Search ready' : 'API connected') : connection === 'checking' ? 'Connecting' : 'Search offline'}</div></header>
     <main>
       <section className="intro"><p className="eyebrow">EVIDENCE EXPLORER <span>01 / RETRIEVAL LAB</span></p><h1>Find the signal.<br /><em>Follow the evidence.</em></h1><p className="intro-copy">Search beyond exact words. Bring keyword precision and semantic meaning into the same conversation.</p></section>
       <div className="workspace">
@@ -64,7 +65,7 @@ export default function App() {
           <div className="suggestions"><span>TRY</span>{suggestions.map(s => <button key={s} disabled={busy} onClick={() => void run(s)}>{s} <span aria-hidden="true">↗</span></button>)}</div>
           <div className="results" aria-live="polite" aria-busy={busy}>
             {view.status === 'idle' && <div className="empty"><div className="empty-symbol" aria-hidden="true">⌕</div><p className="eyebrow">A GOOD QUESTION IS A STARTING POINT</p><h2>Your evidence belongs here.</h2><p>Ask a question or try an example above.<br />Explore the passages, their scores, and the path to an answer.</p><div className="empty-tags"><span>BM25</span><i>+</i><span>MiniLM</span><i>→</i><span>Relevant evidence</span></div></div>}
-            {busy && <div className="loading"><span className="spinner" aria-hidden="true"/><h2>Following the evidence…</h2><p>{mode === 'guided' ? 'Retrieving passages and checking support. Local generation may take a moment.' : 'Ranking keyword and semantic matches.'}</p></div>}
+            {busy && <div className="loading"><span className="spinner" aria-hidden="true"/><h2>Following the evidence…</h2><p>{mode === 'guided' ? 'Retrieving passages and checking support. This may take a moment.' : 'Ranking keyword and semantic matches.'}</p><button className="text-button" onClick={() => { active.current?.abort(); setView({ status: 'idle' }) }}>Cancel search</button></div>}
             {view.status === 'error' && <div className="error" role="alert"><p className="eyebrow">SEARCH COULD NOT COMPLETE</p><h2>Let’s try that again.</h2><p>{view.message}</p><button className="text-button" onClick={() => void run(query)}>Retry search ↗</button></div>}
             {view.status === 'success' && <><div className="result-heading"><h2>{view.mode === 'guided' ? 'Evidence & answer' : 'Retrieved evidence'}</h2><span>{view.result.documents.length} passages · {(view.elapsed / 1000).toFixed(2)}s</span></div><p className="searched-query">For “{view.result.query}”</p>
               {view.result.answer && <article className="answer"><div className="answer-label"><span>{excerpt ? 'RETRIEVED EXCERPT' : view.result.outcome === 'insufficient evidence' ? 'INSUFFICIENT EVIDENCE' : view.result.outcome === 'blocked' ? 'REQUEST BLOCKED' : 'GUIDED ANSWER'}</span><span>{view.result.outcome}</span></div><p>{view.result.answer}</p>{excerpt && <small>Extractive fallback: this response uses retrieved text rather than a generated model answer.</small>}</article>}
@@ -75,7 +76,7 @@ export default function App() {
           </div>
         </section>
       </div>
-      <footer><span>HYBRID SEARCH / EVIDENCE EXPLORER</span><span>Built with React + TypeScript · Powered by FastAPI</span></footer>
+      <footer><span>HYBRID SEARCH / EVIDENCE EXPLORER</span><span>Built with React + TypeScript · {embedded ? 'Hosted on Streamlit' : 'Powered by FastAPI'}</span></footer>
     </main>
   </div>
 }

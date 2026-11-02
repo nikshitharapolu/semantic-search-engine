@@ -23,6 +23,7 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 
 COPY data ./data
 COPY src ./src
+COPY frontend/streamlit_build ./frontend/streamlit_build
 COPY scripts ./scripts
 COPY infra ./infra
 

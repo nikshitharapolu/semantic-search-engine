@@ -4,7 +4,7 @@ Search documents using BM25 keyword retrieval and MiniLM semantic embeddings, th
 
 **[Live Demo](https://semantic-search-engine-nr.streamlit.app/)**
 
-> The public demo returns retrieved evidence without Ollama. Run locally for generated answers.
+> The public demo uses the React + TypeScript interface hosted by Streamlit, with retrieved evidence and guided abstention. Run locally for Ollama-generated answers.
 
 ## Features
 
@@ -81,9 +81,11 @@ on-demand demonstration, separate from the Streamlit demo.
 
 ## React + TypeScript interface
 
-An additional evidence explorer provides typed search requests, ranked passage
-cards, retrieval controls and a guided RAG workflow trace. It runs locally
-against the FastAPI backend alongside the existing Streamlit interface.
+The evidence explorer provides typed search requests, ranked passage cards,
+retrieval controls and a guided RAG workflow trace. The public Streamlit app
+hosts it through a Python component bridge; standalone local development uses
+FastAPI. The public mode uses the bundled corpus and extractive answers, with
+no separate API host or AWS compute required.
 
 See [frontend setup and checks](frontend/README.md).
 
