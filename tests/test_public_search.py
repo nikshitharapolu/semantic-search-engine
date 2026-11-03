@@ -34,13 +34,15 @@ class PublicSearchTests(TestCase):
         result = handle_request({**self.request,'path':'/ask/guided'},self.factory)
         self.assertEqual(result['body']['outcome'],'cited excerpt')
         self.assertIn('trace',result['body'])
-        self.assertTrue(result['body']['answer'].startswith('The strongest retrieved evidence says:'))
+        self.assertEqual(result['body']['answer'], 'Hybrid retrieval combines lexical and semantic evidence. [1]')
 
     def test_guided_abstains_for_missing_attribution(self):
         request = {**self.request,'path':'/ask/guided','payload':{**self.request['payload'],'query':'Who wrote the paper?'}}
         result = handle_request(request,self.factory)
         self.assertEqual(result['body']['outcome'],'insufficient evidence')
         self.assertEqual(result['body']['sources'],[])
+        self.assertEqual(len(result['body']['related_results']), 1)
+        self.assertIn('This does not mean the claim is false', result['body']['answer'])
 
     def test_exception_internals_are_not_returned(self):
         self.factory.side_effect = RuntimeError('private internal detail')

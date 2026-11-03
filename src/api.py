@@ -4,7 +4,8 @@ import json
 import logging
 import os
 import time
-from typing import Any
+from functools import lru_cache
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -53,6 +54,10 @@ class RetrievalRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2_000)
     alpha: float = Field(default=0.5, ge=0.0, le=1.0)
     top_k: int = Field(default=5, ge=1, le=20)
+
+
+class ResearchRequest(RetrievalRequest):
+    subject: Literal['all', 'computer-science', 'engineering', 'life-sciences', 'health-sciences', 'social-sciences', 'physical-sciences'] = 'all'
 
 
 def records_from_frame(frame: pd.DataFrame) -> list[dict[str, Any]]:
@@ -115,6 +120,33 @@ def ask_guided(request: RetrievalRequest) -> dict[str, Any]:
         "outcome": response.outcome,
         "trace": response.trace,
     }
+
+
+@app.post("/research/search")
+def research_search(request: ResearchRequest) -> dict[str, Any]:
+    return research_request('/search', request)
+
+
+@app.post("/research/ask/guided")
+def research_guided(request: ResearchRequest) -> dict[str, Any]:
+    return research_request('/ask/guided', request)
+
+
+def research_request(path: str, request: ResearchRequest) -> dict[str, Any]:
+    # Same cross-subject catalog as the Streamlit app; existing API routes retain
+    # their local sample/upload corpus and Ollama behavior.
+    from public_search import handle_request
+    result = handle_request({'id': 'api-research', 'path': path,
+                             'payload': request.model_dump()}, scientific_engine)
+    if 'error' in result:
+        raise HTTPException(status_code=503, detail=result['error'])
+    return result['body']
+
+
+@lru_cache(maxsize=1)
+def scientific_engine():
+    from public_search import create_engine
+    return create_engine()
 
 
 @app.post("/documents", status_code=201)

@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import sys
 
-# Public queries use the bundled corpus and never enable external tracing.
+# Research terms go to OpenAlex; external LLM tracing remains disabled.
 os.environ['LANGSMITH_TRACING'] = 'false'
 os.environ['LANGCHAIN_TRACING_V2'] = 'false'
 sys.path.insert(0, str(Path(__file__).resolve().parent))

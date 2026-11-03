@@ -2,17 +2,14 @@
 
 No AWS, LLM service, upload directory, or external tracing is required.
 """
-from pathlib import Path
 from typing import Callable, Any
 import math
-import tempfile
+from openalex_search import CatalogUnavailableError
 
 
 def create_engine():
-    from utils import HybridSearchEngine
-    root = Path(__file__).resolve().parents[1]
-    return HybridSearchEngine(str(root / 'data' / 'corpus.csv'),
-                              index_dir=str(Path(tempfile.gettempdir()) / 'hybrid-search-public-index'))
+    from openalex_search import OpenAlexSearchEngine
+    return OpenAlexSearchEngine()
 
 
 def records(frame):
@@ -20,7 +17,7 @@ def records(frame):
     result = []
     for row in frame.to_dict(orient='records'):
         cleaned = {}
-        for key in ('doc_id', 'title', 'category', 'source', 'text', 'bm25_score', 'semantic_score', 'hybrid_score'):
+        for key in ('doc_id', 'title', 'category', 'source', 'text', 'bm25_score', 'semantic_score', 'hybrid_score', 'authors', 'publication_year', 'venue', 'doi', 'source_url', 'catalog_url'):
             value = row.get(key)
             if isinstance(value, np.generic):
                 value = value.item()
@@ -39,6 +36,10 @@ def handle_request(request: dict, engine_factory: Callable[[], Any]) -> dict:
         payload = request.get('payload')
         if not isinstance(payload, dict):
             raise ValueError('Invalid search request.')
+        from openalex_search import SUBJECTS, OpenAlexSearchEngine
+        subject = payload.get('subject', 'all')
+        if not isinstance(subject, str) or subject not in SUBJECTS:
+            raise ValueError('Choose a supported subject.')
         question = payload.get('query')
         alpha = payload.get('alpha', 0.5)
         top_k = payload.get('top_k', 5)
@@ -51,16 +52,27 @@ def handle_request(request: dict, engine_factory: Callable[[], Any]) -> dict:
         from langsmith import tracing_context
         with tracing_context(enabled=False):
             engine = engine_factory()
+            if isinstance(engine, OpenAlexSearchEngine):
+                engine = engine.for_subject(subject)
             if request['path'] == '/search':
                 frame = engine.search(question.strip(), alpha=alpha, top_k=top_k)
                 body = {'query': question.strip(), 'results': records(frame)}
             else:
                 from generation import ExtractiveFallbackGenerator
-                from guided_rag import GuidedRAGPipeline
-                response = GuidedRAGPipeline(engine, ExtractiveFallbackGenerator()).answer(question.strip(), alpha=alpha, top_k=top_k)
+                from scientific_search import ScientificEvidencePipeline
+                response = ScientificEvidencePipeline(engine, ExtractiveFallbackGenerator()).answer(question.strip(), alpha=alpha, top_k=top_k)
                 body = {'query': question.strip(), 'answer': response.answer,
                         'sources': records(response.sources), 'outcome': response.outcome, 'trace': response.trace}
+                if response.outcome == 'insufficient evidence':
+                    body['answer'] = 'The retrieved abstracts did not provide enough evidence to answer your question. This does not mean the claim is false.'
+                    body['related_results'] = records(engine.search(question.strip(), alpha=alpha, top_k=top_k))
+        from scientific_search import COLLECTION, spelling_suggestion
+        collection = getattr(engine, 'collection', None)
+        body['collection'] = collection if isinstance(collection, dict) else COLLECTION
+        body['query_suggestion'] = spelling_suggestion(question.strip(), engine)
         return {'id': request_id, 'body': body}
+    except CatalogUnavailableError as error:
+        return {'id': request_id, 'error': str(error)}
     except ValueError as error:
         return {'id': request_id, 'error': str(error)}
     except Exception:
