@@ -6,6 +6,7 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
     && pip install --no-cache-dir -r requirements.txt
 RUN HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 COPY src ./src
+COPY data/scientific ./data/scientific
 RUN groupadd -g 10001 app && useradd -u 10001 -g app -M app
 USER 10001:10001
 EXPOSE 8000

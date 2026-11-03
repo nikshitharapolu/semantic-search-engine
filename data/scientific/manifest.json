@@ -1,0 +1,10 @@
+{
+  "fingerprint": "491b6e5ec29d3e66159a844d0295090ea6415620c270122c8604a3e5baebdab3",
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "document_count": 5183,
+  "dimensions": 384,
+  "artifacts": {
+    "corpus.csv.gz": "a81de93859a26f5a9125ab66b2b6b8e137749918fa811df884257aaaa375f813",
+    "embeddings.npy": "beaa26e2860a15a590f75e92738eac126a1c794a8f673ac474ba61e8c7c84251"
+  }
+}
