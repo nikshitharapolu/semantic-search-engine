@@ -1,0 +1,103 @@
+{
+  "scope": "Development smoke checks; not independent evaluation or claim-verification accuracy.",
+  "document_count": 5183,
+  "engine_load_seconds": 4.012,
+  "peak_process_rss_mib": 722.3,
+  "performance_note": "Local process with model already cached. Hosting startup, total Streamlit memory and performance may differ.",
+  "cases": [
+    {
+      "query": "Exercise improves memory",
+      "checks": {
+        "guided_outcome": true,
+        "top_document": true
+      },
+      "retrieved_ids": [
+        "57574395",
+        "2424794",
+        "69045262",
+        "2028532",
+        "3202143"
+      ],
+      "top_title": "Exercise-linked FNDC5/irisin rescues synaptic plasticity and memory defects in Alzheimer\u2019s models",
+      "guided_outcome": "cited excerpt",
+      "search_seconds": 0.0487,
+      "guided_seconds": 0.0446
+    },
+    {
+      "query": "Does aerobic fitness relate to memory in children?",
+      "checks": {
+        "guided_outcome": true,
+        "top_document": true
+      },
+      "retrieved_ids": [
+        "2424794",
+        "2575938",
+        "69045262",
+        "21459247",
+        "13230773"
+      ],
+      "top_title": "A neuroimaging investigation of the association between aerobic fitness, hippocampal volume, and memory performance in preadolescent children.",
+      "guided_outcome": "cited excerpt",
+      "search_seconds": 0.0406,
+      "guided_seconds": 0.0443
+    },
+    {
+      "query": "Exercise improves memor",
+      "checks": {
+        "guided_outcome": true,
+        "no_supporting_sources": true,
+        "closest_matches_retained": true,
+        "visible_spelling_suggestion": true
+      },
+      "retrieved_ids": [
+        "69045262",
+        "2028532",
+        "4164929",
+        "17691617",
+        "40631095"
+      ],
+      "top_title": "Children's Exercise Physiology",
+      "guided_outcome": "insufficient evidence",
+      "search_seconds": 0.0453,
+      "guided_seconds": 0.0711
+    },
+    {
+      "query": "Who won the 2026 World Cup?",
+      "checks": {
+        "guided_outcome": true,
+        "no_supporting_sources": true,
+        "closest_matches_retained": true
+      },
+      "retrieved_ids": [
+        "20610390",
+        "27841037",
+        "3623127",
+        "15670968",
+        "13071728"
+      ],
+      "top_title": "Exploring the epidemiological characteristics of cancers of unknown primary site in an Australian population: implications for research and clinical care.",
+      "guided_outcome": "insufficient evidence",
+      "search_seconds": 0.0387,
+      "guided_seconds": 0.0646
+    },
+    {
+      "query": "Who authored the exercise and memory paper?",
+      "checks": {
+        "guided_outcome": true,
+        "no_supporting_sources": true,
+        "closest_matches_retained": true
+      },
+      "retrieved_ids": [
+        "2424794",
+        "57574395",
+        "17691617",
+        "25761154",
+        "143868995"
+      ],
+      "top_title": "A neuroimaging investigation of the association between aerobic fitness, hippocampal volume, and memory performance in preadolescent children.",
+      "guided_outcome": "insufficient evidence",
+      "search_seconds": 0.04,
+      "guided_seconds": 0.0652
+    }
+  ]
+}

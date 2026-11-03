@@ -1,6 +1,8 @@
 # Hybrid Search — React + TypeScript
 
-A local frontend for the existing FastAPI backend. Uses strict TypeScript,
+A research frontend for cross-subject paper discovery using OpenAlex. Standalone mode uses the
+FastAPI `/research/search` and `/research/ask/guided` routes. Original `/search`
+and `/ask/guided` routes retain their sample/upload corpus. Uses strict TypeScript,
 React state unions, runtime validation at the API boundary, cancellation of
 superseded requests, and Vite's same-origin API proxy.
 
@@ -22,7 +24,8 @@ npm run dev
 ```
 
 Open http://127.0.0.1:5173. Enter runs a search; Shift+Enter adds a line.
-Guided RAG uses the existing Ollama/extractive fallback behavior. The UI labels
+Guided evidence uses relevance checks and unabridged retrieved abstracts, not
+Ollama-generated scientific claims. The UI labels
 extractive answers and shows evidence-check decisions. No API key is exposed
 to the browser. The frontend does not load the repository's private `.env`.
 
@@ -43,8 +46,7 @@ stripped. Vite's development proxy does not configure production hosting.
 `npm run preview` previews static files only and does not proxy API requests.
 
 This adds a React interface alongside Streamlit. It does not deploy anything,
-start AWS resources, or enable LangSmith tracing automatically. Google Fonts
-are optional; the stylesheet includes local serif and sans-serif fallbacks.
+start AWS resources, or enable LangSmith tracing automatically. Typography uses system fonts.
 
 ## Public Streamlit deployment
 
@@ -70,8 +72,11 @@ streamlit run src/app.py
 ```
 
 Community Cloud should track `main`, with `src/app.py` as its entry point. A push
-to that branch triggers redeployment. This public mode uses the bundled corpus,
-extractive answers and in-memory/session-local request handling. It never calls
+to that branch triggers redeployment. This public mode uses keyless OpenAlex discovery, local hybrid candidate ranking,
+and retrieved abstracts. Query/subject candidate pools are cached in memory with
+a 30-minute TTL and a 32-entry cap; no query history is written to disk. Search
+terms are sent to OpenAlex, as explained in the UI. Provider limits can interrupt
+search; failures are surfaced without a silent collection fallback. It never calls
 Ollama, writes uploaded documents, starts AWS resources or enables LangSmith
 tracing. Resource limits and sleep behavior of the free hosting still apply.
 The prior Python-widget interface is retained at `src/legacy_app.py` for local use.

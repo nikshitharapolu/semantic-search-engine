@@ -4,7 +4,7 @@ Search documents using BM25 keyword retrieval and MiniLM semantic embeddings, th
 
 **[Live Demo](https://semantic-search-engine-nr.streamlit.app/)**
 
-> The public demo uses the React + TypeScript interface hosted by Streamlit, with retrieved evidence and guided abstention. Run locally for Ollama-generated answers.
+> The public interface discovers papers across subjects through OpenAlex and reranks up to 40 candidates with BM25 and MiniLM. It shows available authors, year, venue, abstracts and paper links. Guided evidence selects a retrieved abstract or abstains; it does not verify scientific claims. Original local API routes still support sample/upload search and Ollama-generated answers.
 
 ## Features
 
@@ -84,10 +84,46 @@ on-demand demonstration, separate from the Streamlit demo.
 The evidence explorer provides typed search requests, ranked passage cards,
 retrieval controls and a guided RAG workflow trace. The public Streamlit app
 hosts it through a Python component bridge; standalone local development uses
-FastAPI. The public mode uses the bundled corpus and extractive answers, with
-no separate API host or AWS compute required.
+FastAPI. Both interfaces use OpenAlex discovery through the same research
+request handler. The original sample/upload routes remain available locally.
 
-See [frontend setup and checks](frontend/README.md).
+### Research workflow
+
+1. Enter a research question in **Hybrid search**; optionally select a subject.
+2. Inspect ranked titles, available publication metadata, and full abstracts.
+3. Open the DOI/publisher link (or catalog record when a source link is missing).
+   **Copy reference** copies available metadata and a source link; verify the
+   original publication before using the reference in an assignment.
+4. Optionally use **Guided evidence** for heuristic relevance checks and a
+   selected abstract. This is not claim verification or generated scientific advice.
+5. Insufficient-evidence responses retain closest matches for exploration.
+   Title-only records cannot serve as guided evidence.
+
+Search terms are sent to OpenAlex; do not submit personal or confidential text.
+The provider first selects up to 40 candidates; local hybrid scores only rank
+that pool, not the entire catalog. Missing abstracts limit evidence checks. A
+subject filter uses the primary OpenAlex topic classification and may omit
+interdisciplinary papers. Known retracted works are excluded by a provider filter;
+metadata is not independently verified. No full-text crawling is performed.
+
+The app deliberately uses **keyless access**. It does not configure API billing,
+read an OpenAlex API key, or use prepaid credit. Provider access/rate limits can
+interrupt discovery; the UI reports failures without silently changing collections.
+A shared in-memory cache holds up to 32 query/subject candidate sets for 30 minutes
+per entry. Queries and responses are not written to disk by this integration.
+
+The standalone research routes are `/research/search` and `/research/ask/guided`.
+They accept `subject`: `all`, `computer-science`, `engineering`, `life-sciences`,
+`health-sciences`, `social-sciences`, or `physical-sciences`. The public component
+uses `/search` and `/ask/guided` internally with the same handler.
+
+**Evaluation scope:** SciFact remains an internal reproducible benchmark; its
+reported gains do not measure OpenAlex candidate discovery/ranking. The live
+candidate ranker uses positive BM25 IDF for small pools. The original 18-question
+sample-corpus evaluation also does not establish scientific-answer quality.
+[Packaged SciFact attribution](data/scientific/README.md) ·
+[Live cross-subject integration checks](docs/evidence/openalex-live-smoke.json) ·
+[OpenAlex API documentation](https://help.openalex.org/api/)
 
 ## Evaluation
 

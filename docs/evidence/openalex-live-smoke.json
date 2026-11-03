@@ -1,0 +1,205 @@
+{
+  "scope": "Live integration smoke checks, not retrieval-quality evaluation. Catalog results may change.",
+  "candidate_limit": 40,
+  "api_access": "keyless; no billing account configured",
+  "cases": [
+    {
+      "query": "How do transformers use attention?",
+      "subject": "computer-science",
+      "/search": {
+        "seconds": 4.019,
+        "outcome": null,
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W4243640523",
+            "title": "Attention Mechanism, Transformers, BERT, and GPT: Tutorial and Survey",
+            "year": 2020,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31219/osf.io/m6gcn",
+            "abstract_available": true
+          },
+          {
+            "id": "W4400450746",
+            "title": "Attention Mechanism, Transformers, BERT, and GPT: Tutorial and Survey",
+            "year": 2024,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31219/osf.io/mru2x",
+            "abstract_available": true
+          },
+          {
+            "id": "W3173222967",
+            "title": "On the Distribution, Sparsity, and Inference-time Quantization of Attention Values in Transformers",
+            "year": 2021,
+            "authors_available": true,
+            "doi": "https://doi.org/10.18653/v1/2021.findings-acl.363",
+            "abstract_available": true
+          }
+        ]
+      },
+      "/ask/guided": {
+        "seconds": 0.013,
+        "outcome": "cited excerpt",
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W4243640523",
+            "title": "Attention Mechanism, Transformers, BERT, and GPT: Tutorial and Survey",
+            "year": 2020,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31219/osf.io/m6gcn",
+            "abstract_available": true
+          },
+          {
+            "id": "W4400450746",
+            "title": "Attention Mechanism, Transformers, BERT, and GPT: Tutorial and Survey",
+            "year": 2024,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31219/osf.io/mru2x",
+            "abstract_available": true
+          },
+          {
+            "id": "W3173222967",
+            "title": "On the Distribution, Sparsity, and Inference-time Quantization of Attention Values in Transformers",
+            "year": 2021,
+            "authors_available": true,
+            "doi": "https://doi.org/10.18653/v1/2021.findings-acl.363",
+            "abstract_available": true
+          }
+        ]
+      }
+    },
+    {
+      "query": "How does exercise relate to memory?",
+      "subject": "health-sciences",
+      "/search": {
+        "seconds": 1.042,
+        "outcome": null,
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W4315650690",
+            "title": "Editorial: How does exercise modify the course of Alzheimer's disease?",
+            "year": 2023,
+            "authors_available": true,
+            "doi": "https://doi.org/10.3389/fnagi.2023.1127747",
+            "abstract_available": false
+          },
+          {
+            "id": "W2990712039",
+            "title": "Alzheimer\u2019s Disease: Memory Interference and the Role of Exercise",
+            "year": 2019,
+            "authors_available": true,
+            "doi": "https://doi.org/10.15586/alzheimersdisease.2019.ch12",
+            "abstract_available": true
+          },
+          {
+            "id": "W2907333688",
+            "title": "Inter-individual differences in working memory improvement after acute mild and moderate aerobic exercise",
+            "year": 2018,
+            "authors_available": true,
+            "doi": "https://doi.org/10.1371/journal.pone.0210053",
+            "abstract_available": true
+          }
+        ]
+      },
+      "/ask/guided": {
+        "seconds": 0.01,
+        "outcome": "cited excerpt",
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W2907333688",
+            "title": "Inter-individual differences in working memory improvement after acute mild and moderate aerobic exercise",
+            "year": 2018,
+            "authors_available": true,
+            "doi": "https://doi.org/10.1371/journal.pone.0210053",
+            "abstract_available": true
+          },
+          {
+            "id": "W4315650690",
+            "title": "Editorial: How does exercise modify the course of Alzheimer's disease?",
+            "year": 2023,
+            "authors_available": true,
+            "doi": "https://doi.org/10.3389/fnagi.2023.1127747",
+            "abstract_available": false
+          },
+          {
+            "id": "W2990712039",
+            "title": "Alzheimer\u2019s Disease: Memory Interference and the Role of Exercise",
+            "year": 2019,
+            "authors_available": true,
+            "doi": "https://doi.org/10.15586/alzheimersdisease.2019.ch12",
+            "abstract_available": true
+          }
+        ]
+      }
+    },
+    {
+      "query": "How does remote work affect productivity?",
+      "subject": "social-sciences",
+      "/search": {
+        "seconds": 1.109,
+        "outcome": null,
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W4402864109",
+            "title": "Working Remotely? Selection, Treatment, and the Market for Remote Work",
+            "year": 2024,
+            "authors_available": true,
+            "doi": "https://doi.org/10.1257/app.20230376",
+            "abstract_available": true
+          },
+          {
+            "id": "W4410014515",
+            "title": "Exploring the Impact of Remote Work on Employee Productivity",
+            "year": 2025,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31124/advance.174607645.58020342/v1",
+            "abstract_available": true
+          },
+          {
+            "id": "W7219967040",
+            "title": "THE IMP\u0410CT OF REMOTE WORK ON EMPLOYEE PRODUCTIVITY \u0410ND JOB S\u0410TISF\u0410CTION",
+            "year": 2025,
+            "authors_available": true,
+            "doi": null,
+            "abstract_available": true
+          }
+        ]
+      },
+      "/ask/guided": {
+        "seconds": 0.01,
+        "outcome": "cited excerpt",
+        "collection": "OpenAlex",
+        "papers": [
+          {
+            "id": "W4402864109",
+            "title": "Working Remotely? Selection, Treatment, and the Market for Remote Work",
+            "year": 2024,
+            "authors_available": true,
+            "doi": "https://doi.org/10.1257/app.20230376",
+            "abstract_available": true
+          },
+          {
+            "id": "W4410014515",
+            "title": "Exploring the Impact of Remote Work on Employee Productivity",
+            "year": 2025,
+            "authors_available": true,
+            "doi": "https://doi.org/10.31124/advance.174607645.58020342/v1",
+            "abstract_available": true
+          },
+          {
+            "id": "W7219967040",
+            "title": "THE IMP\u0410CT OF REMOTE WORK ON EMPLOYEE PRODUCTIVITY \u0410ND JOB S\u0410TISF\u0410CTION",
+            "year": 2025,
+            "authors_available": true,
+            "doi": null,
+            "abstract_available": true
+          }
+        ]
+      }
+    }
+  ]
+}

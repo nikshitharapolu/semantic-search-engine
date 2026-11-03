@@ -4,19 +4,29 @@ export interface Document {
   text: string
   category?: string
   source?: string
+  authors?: string[]
+  publication_year?: number
+  venue?: string
+  doi?: string
+  source_url?: string
+  catalog_url?: string
   bm25_score?: number
   semantic_score?: number
   hybrid_score?: number
 }
 export interface TraceEvent { step: string; result?: string; reason?: string; query?: string; mode?: string; attempt?: number }
 export type Mode = 'search' | 'guided'
-export interface SearchOptions { query: string; alpha: number; top_k: number }
+export type Subject = 'all' | 'computer-science' | 'engineering' | 'life-sciences' | 'health-sciences' | 'social-sciences' | 'physical-sciences'
+export interface SearchOptions { query: string; alpha: number; top_k: number; subject?: Subject }
 export interface SearchResult {
   query: string
   documents: Document[]
   answer?: string
   outcome?: string
   trace: TraceEvent[]
+  relatedDocuments: Document[]
+  querySuggestion?: string
+  collection?: { name: string; description: string }
 }
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 function documents(value: unknown): Document[] {
@@ -26,7 +36,13 @@ function documents(value: unknown): Document[] {
       throw new Error('The API returned an invalid document.')
     }
     const doc: Document = { doc_id: String(row.doc_id), title: typeof row.title === 'string' ? row.title : 'Untitled document', text: row.text }
-    for (const key of ['category', 'source'] as const) if (typeof row[key] === 'string') doc[key] = row[key]
+    for (const key of ['category', 'source', 'venue'] as const) if (typeof row[key] === 'string') doc[key] = row[key]
+    if (Array.isArray(row.authors)) doc.authors = row.authors.filter((name): name is string => typeof name === 'string')
+    if (typeof row.publication_year === 'number' && Number.isInteger(row.publication_year)) doc.publication_year = row.publication_year
+    for (const key of ['doi', 'source_url', 'catalog_url'] as const) {
+      if (typeof row[key] !== 'string') continue
+      try { const url = new URL(row[key]); if (url.protocol === 'https:' && !url.username && !url.password) doc[key] = url.href } catch { /* Ignore malformed catalog URLs. */ }
+    }
     for (const key of ['bm25_score', 'semantic_score', 'hybrid_score'] as const) {
       const score = row[key]
       if (typeof score === 'number' && Number.isFinite(score)) doc[key] = score
@@ -58,7 +74,8 @@ export async function health(signal: AbortSignal): Promise<void> {
   if (!object(body) || body.status !== 'healthy') throw new Error('API is not healthy.')
 }
 export async function search(mode: Mode, options: SearchOptions, signal: AbortSignal): Promise<SearchResult> {
-  const body = await request(mode === 'guided' ? '/ask/guided' : '/search', {
+  const prefix = import.meta.env.MODE === 'streamlit' ? '' : '/research'
+  const body = await request(`${prefix}${mode === 'guided' ? '/ask/guided' : '/search'}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options), signal,
   })
   if (!object(body) || typeof body.query !== 'string') throw new Error('The API response is incomplete.')
@@ -73,5 +90,9 @@ export async function search(mode: Mode, options: SearchOptions, signal: AbortSi
   }
   return { query: body.query, documents: documents(mode === 'guided' ? body.sources : body.results),
     answer: typeof body.answer === 'string' ? body.answer : undefined,
-    outcome: typeof body.outcome === 'string' ? body.outcome : undefined, trace }
+    outcome: typeof body.outcome === 'string' ? body.outcome : undefined, trace,
+    relatedDocuments: Array.isArray(body.related_results) ? documents(body.related_results) : [],
+    querySuggestion: typeof body.query_suggestion === 'string' ? body.query_suggestion : undefined,
+    collection: object(body.collection) && typeof body.collection.name === 'string' && typeof body.collection.description === 'string'
+      ? { name: body.collection.name, description: body.collection.description } : undefined }
 }
